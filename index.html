@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FitTrack - Gym & Diet Tracker</title>
+  <meta name="description" content="Tu compañero móvil para registrar tus pesos en el gimnasio, rutinas y dieta diaria con macros.">
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- App Container: Mimics a smartphone on desktop, full screen on mobile -->
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <span class="date-today" id="current-date">Sábado, 27 de Jun</span>
+        <h1 class="welcome-user">¡Hola, Atleta! 👋</h1>
+      </div>
+      <div class="header-right">
+        <button class="profile-btn" id="header-profile-btn">
+          <div class="avatar">FT</div>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="app-content">
+      
+      <!-- TAB: WORKOUTS (RUTINAS) -->
+      <section id="tab-workouts" class="tab-pane active">
+        <div class="section-header">
+          <h2>Mis Rutinas</h2>
+          <button class="btn-primary-sm" id="btn-add-routine">
+            <i data-lucide="plus"></i> Nueva
+          </button>
+        </div>
+
+        <!-- Routine Selector & Active Routine Card -->
+        <div class="routine-selector-container">
+          <select id="routine-select" class="custom-select">
+            <!-- Dynamic routines load here -->
+          </select>
+        </div>
+
+        <div class="active-routine-card" id="active-routine-container">
+          <!-- Active routine title and exercises will render here -->
+        </div>
+      </section>
+
+      <!-- TAB: PROGRESS (PROGRESO) -->
+      <section id="tab-progress" class="tab-pane">
+        <div class="section-header">
+          <h2>Tu Progreso</h2>
+        </div>
+
+        <div class="progress-selector-container">
+          <label for="progress-exercise-select" class="input-label">Selecciona Ejercicio</label>
+          <select id="progress-exercise-select" class="custom-select">
+            <!-- Dynamic exercises with log history load here -->
+          </select>
+        </div>
+
+        <!-- Chart Card -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title" id="selected-exercise-chart-title">Evolución de Carga</span>
+            <span class="chart-subtitle">Historial por semanas (kg)</span>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="progressChart"></canvas>
+          </div>
+        </div>
+
+        <!-- History List -->
+        <div class="history-container">
+          <h3>Historial de Registros</h3>
+          <div class="history-list" id="exercise-history-list">
+            <!-- Dynamic history items -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: DIET (DIETA) -->
+      <section id="tab-diet" class="tab-pane">
+        <div class="section-header">
+          <h2>Mi Alimentación</h2>
+          <button class="btn-primary-sm" id="btn-edit-diet-goals">
+            <i data-lucide="sliders"></i> Macros
+          </button>
+        </div>
+
+        <!-- Day Selector (Horizontal Scroll) -->
+        <div class="day-selector">
+          <button class="day-btn active" data-day="0">Lun</button>
+          <button class="day-btn" data-day="1">Mar</button>
+          <button class="day-btn" data-day="2">Mié</button>
+          <button class="day-btn" data-day="3">Jue</button>
+          <button class="day-btn" data-day="4">Vie</button>
+          <button class="day-btn" data-day="5">Sáb</button>
+          <button class="day-btn" data-day="6">Dom</button>
+        </div>
+
+        <!-- Macros Dashboard -->
+        <div class="macros-dashboard">
+          <div class="caloric-progress">
+            <div class="circular-progress-wrapper">
+              <svg class="progress-ring" width="120" height="120">
+                <circle class="progress-ring__circle-bg" stroke="rgba(255,255,255,0.06)" stroke-width="10" fill="transparent" r="50" cx="60" cy="60"/>
+                <circle class="progress-ring__circle" id="calories-progress-ring" stroke="var(--color-primary)" stroke-width="10" stroke-linecap="round" fill="transparent" r="50" cx="60" cy="60"/>
+              </svg>
+              <div class="calories-text">
+                <span class="calories-value" id="current-calories">0</span>
+                <span class="calories-label">de <span id="target-calories">2300</span> kcal</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="macros-bars">
+            <!-- Protein Bar -->
+            <div class="macro-bar-item">
+              <div class="macro-info">
+                <span class="macro-name">Proteínas</span>
+                <span class="macro-values"><span id="current-protein">0</span>g / <span id="target-protein">160</span>g</span>
+              </div>
+              <div class="macro-track">
+                <div class="macro-fill protein-fill" id="protein-progress-bar"></div>
+              </div>
+            </div>
+            <!-- Carbs Bar -->
+            <div class="macro-bar-item">
+              <div class="macro-info">
+                <span class="macro-name">Carbohidratos</span>
+                <span class="macro-values"><span id="current-carbs">0</span>g / <span id="target-carbs">250</span>g</span>
+              </div>
+              <div class="macro-track">
+                <div class="macro-fill carbs-fill" id="carbs-progress-bar"></div>
+              </div>
+            </div>
+            <!-- Fats Bar -->
+            <div class="macro-bar-item">
+              <div class="macro-info">
+                <span class="macro-name">Grasas</span>
+                <span class="macro-values"><span id="current-fats">0</span>g / <span id="target-fats">70</span>g</span>
+              </div>
+              <div class="macro-track">
+                <div class="macro-fill fats-fill" id="fats-progress-bar"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meals List -->
+        <div class="meals-list" id="meals-container">
+          <!-- Dynamic meals load here -->
+        </div>
+      </section>
+
+      <!-- TAB: PROFILE (PERFIL) -->
+      <section id="tab-profile" class="tab-pane">
+        <div class="section-header">
+          <h2>Mi Perfil</h2>
+        </div>
+
+        <div class="profile-card">
+          <div class="profile-avatar-large">FT</div>
+          <h3 class="profile-name">Usuario de FitTrack</h3>
+          <p class="profile-subtitle">Objetivo: Definición / Fuerza</p>
+        </div>
+
+        <!-- Physical Metrics Card -->
+        <div class="settings-card">
+          <h3>Métricas Físicas</h3>
+          <div class="settings-grid">
+            <div class="settings-group">
+              <label for="profile-weight">Peso Actual (kg)</label>
+              <input type="number" id="profile-weight" value="78.5" step="0.1" class="custom-input">
+            </div>
+            <div class="settings-group">
+              <label for="profile-height">Altura (cm)</label>
+              <input type="number" id="profile-height" value="178" class="custom-input">
+            </div>
+          </div>
+        </div>
+
+        <!-- Nutrition Target Settings -->
+        <div class="settings-card">
+          <h3>Objetivos Nutricionales</h3>
+          <div class="settings-grid">
+            <div class="settings-group">
+              <label for="profile-calories">Calorías (kcal)</label>
+              <input type="number" id="profile-calories" value="2300" class="custom-input">
+            </div>
+            <div class="settings-group">
+              <label for="profile-protein">Proteína (g)</label>
+              <input type="number" id="profile-protein" value="160" class="custom-input">
+            </div>
+            <div class="settings-group">
+              <label for="profile-carbs">Carbohidratos (g)</label>
+              <input type="number" id="profile-carbs" value="250" class="custom-input">
+            </div>
+            <div class="settings-group">
+              <label for="profile-fats">Grasas (g)</label>
+              <input type="number" id="profile-fats" value="70" class="custom-input">
+            </div>
+          </div>
+          <button class="btn-primary" id="btn-save-profile">Guardar Perfil</button>
+        </div>
+
+        <!-- Maintenance Settings -->
+        <div class="settings-card alert-card">
+          <h3>Mantenimiento de Datos</h3>
+          <p>Puedes reiniciar los datos de la aplicación a la demo inicial o limpiar todos los registros.</p>
+          <div class="btn-row">
+            <button class="btn-secondary" id="btn-reset-demo">Cargar Demo</button>
+            <button class="btn-danger" id="btn-clear-all">Borrar Todo</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="app-nav">
+      <button class="nav-item active" data-tab="tab-workouts">
+        <i data-lucide="dumbbell"></i>
+        <span>Rutinas</span>
+      </button>
+      <button class="nav-item" data-tab="tab-progress">
+        <i data-lucide="trending-up"></i>
+        <span>Progreso</span>
+      </button>
+      <button class="nav-item" data-tab="tab-diet">
+        <i data-lucide="apple"></i>
+        <span>Dieta</span>
+      </button>
+      <button class="nav-item" data-tab="tab-profile">
+        <i data-lucide="user"></i>
+        <span>Perfil</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- MODALS -->
+
+  <!-- Modal: Edit Meal Item -->
+  <div class="modal" id="meal-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="meal-modal-title">Añadir Alimento</h3>
+        <button class="modal-close" id="btn-close-meal-modal"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="meal-day-index">
+        <input type="hidden" id="meal-type-name"> <!-- Desayuno, Comida, etc. -->
+        <input type="hidden" id="meal-item-index"> <!-- for editing -->
+        
+        <div class="settings-group">
+          <label for="meal-food-name">Nombre del alimento / plato</label>
+          <input type="text" id="meal-food-name" placeholder="Ej. Avena con proteínas" class="custom-input">
+        </div>
+        <div class="settings-grid">
+          <div class="settings-group">
+            <label for="meal-calories">Calorías (kcal)</label>
+            <input type="number" id="meal-calories" value="0" class="custom-input">
+          </div>
+          <div class="settings-group">
+            <label for="meal-protein">Proteína (g)</label>
+            <input type="number" id="meal-protein" value="0" class="custom-input">
+          </div>
+        </div>
+        <div class="settings-grid">
+          <div class="settings-group">
+            <label for="meal-carbs">Carbohidratos (g)</label>
+            <input type="number" id="meal-carbs" value="0" class="custom-input">
+          </div>
+          <div class="settings-group">
+            <label for="meal-fats">Grasas (g)</label>
+            <input type="number" id="meal-fats" value="0" class="custom-input">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="btn-cancel-meal">Cancelar</button>
+        <button class="btn-primary" id="btn-save-meal">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add Routine -->
+  <div class="modal" id="routine-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Crear Nueva Rutina</h3>
+        <button class="modal-close" id="btn-close-routine-modal"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-group">
+          <label for="new-routine-name">Nombre de la Rutina</label>
+          <input type="text" id="new-routine-name" placeholder="Ej. Torso - Fuerza" class="custom-input">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="btn-cancel-routine">Cancelar</button>
+        <button class="btn-primary" id="btn-save-routine">Crear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add Exercise to Routine -->
+  <div class="modal" id="exercise-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Añadir Ejercicio</h3>
+        <button class="modal-close" id="btn-close-exercise-modal"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-group">
+          <label for="new-exercise-name">Nombre del Ejercicio</label>
+          <input type="text" id="new-exercise-name" placeholder="Ej. Press de Banca" class="custom-input">
+        </div>
+        <div class="settings-group">
+          <label for="new-exercise-sets">Número de series iniciales</label>
+          <input type="number" id="new-exercise-sets" value="3" min="1" max="10" class="custom-input">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="btn-cancel-exercise">Cancelar</button>
+        <button class="btn-primary" id="btn-save-exercise">Añadir</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
