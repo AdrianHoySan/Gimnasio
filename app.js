@@ -3,7 +3,7 @@
 // ==========================================================================
 
 // Bump this when the default plan changes so existing users get the new plan
-const DATA_VERSION = 2;
+const DATA_VERSION = 3;
 
 const DAY_NAMES = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 const DAY_SHORT = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
@@ -178,16 +178,19 @@ const DEFAULT_DIET = [
       Desayuno: BREAKFAST(),
       Comida: [
         food("Pechuga de pollo (200 g)", 220, 46, 0, 3),
-        food("Arroz (80 g en crudo)", 285, 6, 62, 1),
+        food("Arroz (2 vasitos)", 380, 8, 80, 4),
         food("Pimientos", 30, 1, 6, 0)
       ],
       Merienda: [
         food("Queso batido 0% (250 g)", 120, 20, 9, 0),
-        food("Manzana", 80, 0, 21, 0)
+        food("Manzana", 80, 0, 21, 0),
+        food("Yogur proteico", 80, 12, 5, 0)
       ],
       Cena: [
-        food("Tortilla (1 huevo + 3 claras) con calabacín", 145, 18, 5, 5),
-        food("Pepino", 15, 1, 3, 0)
+        food("Hamburguesas de pollo (1 pack)", 330, 40, 6, 16),
+        food("1 huevo o 2 claras", 70, 6, 0, 5),
+        food("Patata (200 g)", 155, 4, 34, 0),
+        food("Calabacín", 25, 2, 4, 0)
       ]
     }
   },
@@ -197,15 +200,18 @@ const DEFAULT_DIET = [
       Desayuno: BREAKFAST(),
       Comida: [
         food("Pollo troceado (200 g) con calabacín", 245, 47, 4, 3),
-        food("Macarrones (80 g en crudo)", 285, 10, 57, 1)
+        food("Macarrones (100 g en crudo)", 355, 12, 71, 2),
+        food("Tomate (100 g)", 20, 1, 4, 0)
       ],
       Merienda: [
         food("3 huevos cocidos", 210, 19, 1, 15),
-        food("Pera", 90, 1, 23, 0)
+        food("Pera", 90, 1, 23, 0),
+        food("Yogur proteico", 80, 12, 5, 0)
       ],
       Cena: [
-        food("Salmón al horno (180 g)", 370, 36, 0, 25),
-        food("Espárragos", 30, 3, 4, 0)
+        food("Salmón (150 g)", 310, 30, 0, 21),
+        food("Espárragos", 30, 3, 4, 0),
+        food("Patata (250 g)", 190, 5, 43, 0)
       ]
     }
   },
@@ -214,18 +220,18 @@ const DEFAULT_DIET = [
     meals: {
       Desayuno: BREAKFAST(),
       Comida: [
-        food("Albóndigas (200 g)", 320, 34, 8, 16),
+        food("Albóndigas (250 g)", 400, 42, 10, 20),
         food("Patata (250 g)", 190, 5, 43, 0),
         food("Pepino", 15, 1, 3, 0)
       ],
       Merienda: [
-        food("Pavo (4-5 lonchas)", 90, 18, 1, 1),
+        food("Pavo (100 g)", 100, 20, 1, 1),
         food("Yogur proteico", 80, 12, 5, 0),
         food("Manzana", 80, 0, 21, 0)
       ],
       Cena: [
-        food("2 tortillas de fajita", 180, 5, 30, 4),
-        food("Pechuga de pollo (150 g) con pimientos", 195, 36, 6, 2)
+        food("3 tortillas de fajita", 270, 8, 45, 6),
+        food("Pechuga de pollo (200 g) con pimientos", 250, 47, 6, 3)
       ]
     }
   },
@@ -234,33 +240,36 @@ const DEFAULT_DIET = [
     meals: {
       Desayuno: BREAKFAST(),
       Comida: [
-        food("Pinchos de pollo (200 g)", 260, 44, 2, 8),
-        food("Arroz (80 g en crudo)", 285, 6, 62, 1),
+        food("Pinchos de pollo (2)", 260, 44, 2, 8),
+        food("Arroz (2 vasitos)", 380, 8, 80, 4),
         food("Calabacín", 25, 2, 4, 0)
       ],
       Merienda: [
         food("Queso batido 0% (250 g)", 120, 20, 9, 0),
-        food("Pera", 90, 1, 23, 0)
+        food("Pera", 90, 1, 23, 0),
+        food("Yogur proteico", 80, 12, 5, 0)
       ],
       Cena: [
-        food("Atún a la plancha (200 g)", 290, 46, 0, 10),
+        food("Atún (200 g)", 290, 46, 0, 10),
         food("Espárragos", 30, 3, 4, 0),
-        food("Patata (150 g)", 115, 3, 26, 0)
+        food("Patata (300 g)", 230, 6, 52, 0)
       ]
     }
   },
   {
     dayName: "Viernes",
-    note: "Comida grande post-gym · sin cena en el plan",
+    note: "Cena libre: añade lo que comas",
     meals: {
       Desayuno: BREAKFAST(),
       Comida: [
-        food("Pechuga o pollo troceado (220 g)", 240, 50, 0, 3),
+        food("Pollo o pechuga (250 g)", 275, 57, 0, 4),
         food("Macarrones (100 g en crudo)", 355, 12, 71, 2),
-        food("Pimientos y calabacín", 45, 2, 8, 0)
+        food("Pimientos y calabacín", 45, 2, 8, 0),
+        food("Tomate (100 g)", 20, 1, 4, 0)
       ],
       Merienda: [
-        food("Pavo (4-5 lonchas)", 90, 18, 1, 1),
+        food("Pavo (100 g)", 100, 20, 1, 1),
+        food("Yogur proteico", 80, 12, 5, 0),
         food("Fruta", 80, 0, 20, 0)
       ],
       Cena: []
@@ -333,8 +342,8 @@ function initApp() {
       state = JSON.parse(saved);
       if (!state.routines || !state.goals) {
         loadDefaults();
-      } else if (state.dataVersion !== DATA_VERSION) {
-        migrateToNewPlan();
+      } else if ((state.dataVersion || 1) < DATA_VERSION) {
+        migrateToNewPlan(state.dataVersion || 1);
       }
     } catch (e) {
       console.error("Error reading localStorage, loading defaults instead", e);
@@ -385,9 +394,12 @@ function loadDefaults() {
   saveState();
 }
 
-// Swap in the new routines/diet plan but keep the user's history and goals
-function migrateToNewPlan() {
-  state.routines = JSON.parse(JSON.stringify(DEFAULT_ROUTINES));
+// Swap in the new plan but keep the user's history and goals
+// v2: new routines + diet, v3: new diet only
+function migrateToNewPlan(fromVersion) {
+  if (fromVersion < 2) {
+    state.routines = JSON.parse(JSON.stringify(DEFAULT_ROUTINES));
+  }
   state.logs = state.logs || {};
 
   // Drop this week's (and later) diet logs so they regenerate from the new plan
