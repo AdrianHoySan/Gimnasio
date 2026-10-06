@@ -3,7 +3,7 @@
 // ==========================================================================
 
 // Bump this when the default plan changes so existing users get the new plan
-const DATA_VERSION = 3;
+const DATA_VERSION = 4;
 
 const DAY_NAMES = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 const DAY_SHORT = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
@@ -165,8 +165,8 @@ function food(name, calories, protein, carbs, fats, note) {
 }
 
 const BREAKFAST = () => [
-  food("Avena", 300, 10, 53, 5),
-  food("Leche semidesnatada (300 ml)", 140, 10, 14, 5),
+  food("Leche semidesnatada (200 ml)", 95, 7, 10, 3),
+  food("Weetabix Original (2 galletas)", 135, 5, 25, 1),
   food("Plátano", 100, 1, 25, 0),
   food("Yogur proteico", 80, 12, 5, 0)
 ];
@@ -395,18 +395,23 @@ function loadDefaults() {
 }
 
 // Swap in the new plan but keep the user's history and goals
-// v2: new routines + diet, v3: new diet only
+// v2: new routines + diet, v3: new diet only, v4: new breakfast only
 function migrateToNewPlan(fromVersion) {
   if (fromVersion < 2) {
     state.routines = JSON.parse(JSON.stringify(DEFAULT_ROUTINES));
   }
   state.logs = state.logs || {};
 
-  // Drop this week's (and later) diet logs so they regenerate from the new plan
   const weekStart = getDateStringForDayIndex(0);
   const dietLogs = state.dietLogs || {};
   Object.keys(dietLogs).forEach(date => {
-    if (date >= weekStart) delete dietLogs[date];
+    if (date < weekStart) return;
+    if (fromVersion < 3) {
+      // Drop this week's (and later) diet logs so they regenerate from the new plan
+      delete dietLogs[date];
+    } else if (fromVersion < 4 && dietLogs[date].meals) {
+      dietLogs[date].meals.Desayuno = BREAKFAST();
+    }
   });
   state.dietLogs = dietLogs;
   delete state.diet;
