@@ -1,6 +1,31 @@
 // ==========================================================================
-// STATE MANAGEMENT & INITIAL DEMO DATA
+// STATE MANAGEMENT & INITIAL DATA
 // ==========================================================================
+
+// Bump this when the default plan changes so existing users get the new plan
+const DATA_VERSION = 2;
+
+const DAY_NAMES = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+const DAY_SHORT = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+
+const GROUP_COLORS = {
+  "Pierna": "#34d399",
+  "Pecho": "#f472b6",
+  "Espalda": "#60a5fa",
+  "Hombro": "#fbbf24",
+  "Bíceps": "#a78bfa",
+  "Tríceps": "#fb7185",
+  "Abdomen": "#2dd4bf",
+  "Final": "#94a3b8"
+};
+
+const MEAL_ICONS = {
+  "Desayuno": "sunrise",
+  "Almuerzo": "coffee",
+  "Comida": "utensils",
+  "Merienda": "apple",
+  "Cena": "moon"
+};
 
 const DEFAULT_GOALS = {
   calories: 2300,
@@ -11,225 +36,96 @@ const DEFAULT_GOALS = {
   height: 178
 };
 
+// Helper to build N identical sets
+function sets(count, weight, reps) {
+  return Array.from({ length: count }, () => ({ weight, reps, done: false }));
+}
+
+// Same exercise on different days shares its id so its progress history is unified
 const DEFAULT_ROUTINES = [
   {
-    id: "r1",
-    name: "Martes: DÍA 1 — Fuerza y Estabilidad",
+    id: "lun",
+    weekday: 0,
+    name: "Full Body A",
     exercises: [
-      {
-        id: "e1",
-        name: "Prensa de piernas",
-        sets: [
-          { weight: 150, reps: 10, done: false },
-          { weight: 160, reps: 10, done: false },
-          { weight: 170, reps: 8, done: false },
-          { weight: 170, reps: 8, done: false }
-        ]
-      },
-      {
-        id: "e2",
-        name: "Gemelos (en máquina o prensa)",
-        sets: [
-          { weight: 60, reps: 12, done: false },
-          { weight: 60, reps: 12, done: false },
-          { weight: 60, reps: 12, done: false },
-          { weight: 60, reps: 12, done: false }
-        ]
-      },
-      {
-        id: "e3",
-        name: "Jalón al pecho",
-        sets: [
-          { weight: 55, reps: 10, done: false },
-          { weight: 60, reps: 10, done: false },
-          { weight: 60, reps: 10, done: false },
-          { weight: 65, reps: 8, done: false }
-        ]
-      },
-      {
-        id: "e4",
-        name: "Press de banca con mancuernas",
-        sets: [
-          { weight: 24, reps: 8, done: false },
-          { weight: 24, reps: 8, done: false },
-          { weight: 26, reps: 8, done: false },
-          { weight: 26, reps: 8, done: false }
-        ]
-      },
-      {
-        id: "e5",
-        name: "Face Pull",
-        sets: [
-          { weight: 20, reps: 15, done: false },
-          { weight: 20, reps: 15, done: false },
-          { weight: 20, reps: 15, done: false }
-        ]
-      },
-      {
-        id: "e6",
-        name: "Extensión de tríceps en polea (Agarre supino)",
-        sets: [
-          { weight: 15, reps: 12, done: false },
-          { weight: 15, reps: 12, done: false },
-          { weight: 15, reps: 12, done: false }
-        ]
-      },
-      {
-        id: "e7",
-        name: "Curl de bíceps en polea",
-        sets: [
-          { weight: 20, reps: 12, done: false },
-          { weight: 20, reps: 12, done: false },
-          { weight: 20, reps: 12, done: false }
-        ]
-      }
+      { id: "e1", group: "Pierna", name: "Prensa", sets: [
+        { weight: 150, reps: 10, done: false },
+        { weight: 160, reps: 10, done: false },
+        { weight: 170, reps: 8, done: false },
+        { weight: 170, reps: 8, done: false }
+      ] },
+      { id: "e9", group: "Pierna", name: "Curl femoral", sets: sets(3, 45, 10) },
+      { id: "e4", group: "Pecho", name: "Press banca mancuernas", sets: [
+        { weight: 24, reps: 8, done: false },
+        { weight: 24, reps: 8, done: false },
+        { weight: 26, reps: 8, done: false },
+        { weight: 26, reps: 8, done: false }
+      ] },
+      { id: "e3", group: "Espalda", name: "Jalón al pecho", sets: [
+        { weight: 55, reps: 10, done: false },
+        { weight: 60, reps: 10, done: false },
+        { weight: 60, reps: 10, done: false },
+        { weight: 65, reps: 8, done: false }
+      ] },
+      { id: "e22", group: "Hombro", name: "Press militar", sets: sets(3, 30, 10) },
+      { id: "e7", group: "Bíceps", name: "Curl de bíceps", sets: sets(3, 20, 12) },
+      { id: "e6", group: "Tríceps", name: "Extensión en polea", sets: sets(3, 15, 12) },
+      { id: "e23", group: "Abdomen", name: "Crunch en polea", optional: true, sets: sets(3, 30, 15) },
+      { id: "e2", group: "Final", name: "Gemelos", sets: sets(4, 60, 12) },
+      { id: "e16", group: "Final", name: "Abductores", sets: sets(3, 55, 15) }
     ]
   },
   {
-    id: "r2",
-    name: "Jueves: DÍA 2 — Variantes de Fuerza",
+    id: "mie",
+    weekday: 2,
+    name: "Full Body B",
     exercises: [
-      {
-        id: "e8",
-        name: "Sentadilla hack o multipower",
-        sets: [
-          { weight: 60, reps: 8, done: false },
-          { weight: 70, reps: 8, done: false },
-          { weight: 70, reps: 8, done: false },
-          { weight: 80, reps: 8, done: false }
-        ]
-      },
-      {
-        id: "e9",
-        name: "Curl de piernas acostado (Femoral)",
-        sets: [
-          { weight: 40, reps: 12, done: false },
-          { weight: 45, reps: 10, done: false },
-          { weight: 45, reps: 10, done: false },
-          { weight: 45, reps: 10, done: false }
-        ]
-      },
-      {
-        id: "e10",
-        name: "Remo en polea baja o máquina",
-        sets: [
-          { weight: 50, reps: 10, done: false },
-          { weight: 55, reps: 10, done: false },
-          { weight: 55, reps: 10, done: false },
-          { weight: 60, reps: 8, done: false }
-        ]
-      },
-      {
-        id: "e11",
-        name: "Press inclinado con mancuernas",
-        sets: [
-          { weight: 20, reps: 10, done: false },
-          { weight: 22, reps: 10, done: false },
-          { weight: 22, reps: 10, done: false },
-          { weight: 22, reps: 10, done: false }
-        ]
-      },
-      {
-        id: "e12",
-        name: "Elevaciones laterales en polea",
-        sets: [
-          { weight: 7.5, reps: 15, done: false },
-          { weight: 7.5, reps: 12, done: false },
-          { weight: 7.5, reps: 12, done: false }
-        ]
-      },
-      {
-        id: "e13",
-        name: "Extensión de tríceps tras nuca en polea",
-        sets: [
-          { weight: 17.5, reps: 12, done: false },
-          { weight: 17.5, reps: 12, done: false },
-          { weight: 17.5, reps: 12, done: false }
-        ]
-      },
-      {
-        id: "e14",
-        name: "Curl de bíceps alterno con mancuernas",
-        sets: [
-          { weight: 12, reps: 12, done: false },
-          { weight: 12, reps: 12, done: false },
-          { weight: 12, reps: 12, done: false }
-        ]
-      }
+      { id: "e8", group: "Pierna", name: "Hack", sets: [
+        { weight: 60, reps: 8, done: false },
+        { weight: 70, reps: 8, done: false },
+        { weight: 70, reps: 8, done: false },
+        { weight: 80, reps: 8, done: false }
+      ] },
+      { id: "e24", group: "Pierna", name: "Extensión de cuádriceps", sets: sets(3, 45, 12) },
+      { id: "e11", group: "Pecho", name: "Press inclinado mancuernas", sets: [
+        { weight: 20, reps: 10, done: false },
+        { weight: 22, reps: 10, done: false },
+        { weight: 22, reps: 10, done: false },
+        { weight: 22, reps: 10, done: false }
+      ] },
+      { id: "e25", group: "Espalda", name: "Remo en T", sets: sets(4, 40, 10) },
+      { id: "e12", group: "Hombro", name: "Elevaciones laterales", sets: sets(3, 7.5, 12) },
+      { id: "e26", group: "Bíceps", name: "Curl martillo", sets: sets(3, 12, 12) },
+      { id: "e27", group: "Tríceps", name: "Press francés", sets: sets(3, 20, 10) },
+      { id: "e28", group: "Abdomen", name: "Elevación de piernas", optional: true, sets: sets(3, 0, 12) },
+      { id: "e2", group: "Final", name: "Gemelos", sets: sets(4, 60, 12) },
+      { id: "e17", group: "Final", name: "Aductores", sets: sets(3, 65, 15) }
     ]
   },
   {
-    id: "r3",
-    name: "Sábado: DÍA 3 — Detalle e Intensidad en Pierna",
+    id: "vie",
+    weekday: 4,
+    name: "Full Body C",
     exercises: [
-      {
-        id: "e16",
-        name: "Máquina de Abductores (Fuera)",
-        sets: [
-          { weight: 50, reps: 15, done: false },
-          { weight: 55, reps: 15, done: false },
-          { weight: 55, reps: 15, done: false },
-          { weight: 55, reps: 15, done: false }
-        ]
-      },
-      {
-        id: "e17",
-        name: "Máquina de Aductores (Dentro)",
-        sets: [
-          { weight: 60, reps: 15, done: false },
-          { weight: 65, reps: 15, done: false },
-          { weight: 65, reps: 15, done: false },
-          { weight: 65, reps: 15, done: false }
-        ]
-      },
-      {
-        id: "e18",
-        name: "Remo unilateral con mancuerna",
-        sets: [
-          { weight: 26, reps: 10, done: false },
-          { weight: 28, reps: 10, done: false },
-          { weight: 28, reps: 10, done: false },
-          { weight: 30, reps: 10, done: false }
-        ]
-      },
-      {
-        id: "e19",
-        name: "Pec-deck",
-        sets: [
-          { weight: 35, reps: 12, done: false },
-          { weight: 40, reps: 12, done: false },
-          { weight: 40, reps: 12, done: false },
-          { weight: 40, reps: 12, done: false }
-        ]
-      },
-      {
-        id: "e15",
-        name: "Máquina de hombros",
-        sets: [
-          { weight: 25, reps: 12, done: false },
-          { weight: 30, reps: 10, done: false },
-          { weight: 30, reps: 10, done: false },
-          { weight: 30, reps: 10, done: false }
-        ]
-      },
-      {
-        id: "e20",
-        name: "Patada de tríceps en polea (Cable)",
-        sets: [
-          { weight: 10, reps: 12, done: false },
-          { weight: 10, reps: 12, done: false },
-          { weight: 10, reps: 12, done: false }
-        ]
-      },
-      {
-        id: "e21",
-        name: "Curl de bíceps predicador",
-        sets: [
-          { weight: 25, reps: 12, done: false },
-          { weight: 25, reps: 10, done: false },
-          { weight: 25, reps: 10, done: false }
-        ]
-      }
+      { id: "e1", group: "Pierna", name: "Prensa", sets: [
+        { weight: 150, reps: 10, done: false },
+        { weight: 160, reps: 10, done: false },
+        { weight: 170, reps: 8, done: false },
+        { weight: 170, reps: 8, done: false }
+      ] },
+      { id: "e29", group: "Pierna", name: "Peso muerto rumano", optional: true, sets: sets(3, 50, 10) },
+      { id: "e19", group: "Pecho", name: "Peck deck", sets: sets(3, 35, 12) },
+      { id: "e18", group: "Espalda", name: "Remo a una mano", sets: [
+        { weight: 26, reps: 10, done: false },
+        { weight: 28, reps: 10, done: false },
+        { weight: 28, reps: 10, done: false },
+        { weight: 30, reps: 10, done: false }
+      ] },
+      { id: "e5", group: "Hombro", name: "Face pulls", sets: sets(3, 20, 15) },
+      { id: "e7", group: "Bíceps", name: "Curl de bíceps", sets: sets(3, 20, 12) },
+      { id: "e30", group: "Tríceps", name: "Extensión katana", sets: sets(3, 10, 12) },
+      { id: "e31", group: "Abdomen", name: "Plancha", optional: true, unit: "seg", sets: sets(3, 0, 45) },
+      { id: "e2", group: "Final", name: "Gemelos", sets: sets(4, 60, 12) }
     ]
   }
 ];
@@ -261,182 +157,130 @@ const DEFAULT_LOGS = {
   ]
 };
 
+// Food catalogue (macros are estimates)
+function food(name, calories, protein, carbs, fats, note) {
+  const item = { name, calories, protein, carbs, fats, completed: false };
+  if (note) item.note = note;
+  return item;
+}
+
+const BREAKFAST = () => [
+  food("Avena", 300, 10, 53, 5),
+  food("Leche semidesnatada (300 ml)", 140, 10, 14, 5),
+  food("Plátano", 100, 1, 25, 0),
+  food("Yogur proteico", 80, 12, 5, 0)
+];
+
 const DEFAULT_DIET = [
-  // Lunes (DayIndex 0)
   {
     dayName: "Lunes",
     meals: {
-      Desayuno: [
-        { name: "Avena", calories: 300, protein: 10, carbs: 53, fats: 5, completed: false },
-        { name: "Leche semidesnatada (300 ml)", calories: 140, protein: 10, carbs: 14, fats: 5, completed: false },
-        { name: "Plátano", calories: 100, protein: 1, carbs: 25, fats: 0, completed: false },
-        { name: "Yogur proteico", calories: 80, protein: 12, carbs: 5, fats: 0, completed: false }
-      ],
-      Almuerzo: [
-        { name: "Queso fresco batido 0% (250 g)", calories: 120, protein: 20, carbs: 9, fats: 0, completed: false }
-      ],
+      Desayuno: BREAKFAST(),
       Comida: [
-        { name: "Pechuga de pollo (220 g)", calories: 240, protein: 50, carbs: 0, fats: 3, completed: false },
-        { name: "Arroz integral (100 g)", calories: 350, protein: 7, carbs: 77, fats: 1, completed: false },
-        { name: "Pimientos + Calabacín", calories: 40, protein: 1, carbs: 8, fats: 0, completed: false }
+        food("Pechuga de pollo (200 g)", 220, 46, 0, 3),
+        food("Arroz (80 g en crudo)", 285, 6, 62, 1),
+        food("Pimientos", 30, 1, 6, 0)
+      ],
+      Merienda: [
+        food("Queso batido 0% (250 g)", 120, 20, 9, 0),
+        food("Manzana", 80, 0, 21, 0)
       ],
       Cena: [
-        { name: "Hamburguesas de pollo y calabacín", calories: 280, protein: 35, carbs: 5, fats: 12, completed: false },
-        { name: "Pepino", calories: 15, protein: 1, carbs: 3, fats: 0, completed: false }
+        food("Tortilla (1 huevo + 3 claras) con calabacín", 145, 18, 5, 5),
+        food("Pepino", 15, 1, 3, 0)
       ]
     }
   },
-  // Martes (DayIndex 1)
   {
     dayName: "Martes",
     meals: {
-      Desayuno: [
-        { name: "Avena", calories: 300, protein: 10, carbs: 53, fats: 5, completed: false },
-        { name: "Leche semidesnatada (300 ml)", calories: 140, protein: 10, carbs: 14, fats: 5, completed: false },
-        { name: "Plátano", calories: 100, protein: 1, carbs: 25, fats: 0, completed: false },
-        { name: "Yogur proteico", calories: 80, protein: 12, carbs: 5, fats: 0, completed: false }
-      ],
-      Almuerzo: [
-        { name: "Pavo en lonchas (100 g)", calories: 100, protein: 20, carbs: 1, fats: 1, completed: false },
-        { name: "Fruta (1 unidad)", calories: 80, protein: 0, carbs: 20, fats: 0, completed: false }
-      ],
+      Desayuno: BREAKFAST(),
       Comida: [
-        { name: "Libre controlado (Estimado)", calories: 700, protein: 40, carbs: 70, fats: 25, completed: false }
+        food("Pollo troceado (200 g) con calabacín", 245, 47, 4, 3),
+        food("Macarrones (80 g en crudo)", 285, 10, 57, 1)
+      ],
+      Merienda: [
+        food("3 huevos cocidos", 210, 19, 1, 15),
+        food("Pera", 90, 1, 23, 0)
       ],
       Cena: [
-        { name: "Tortilla de 2 huevos", calories: 150, protein: 13, carbs: 1, fats: 10, completed: false },
-        { name: "Pollo a la plancha (150 g)", calories: 170, protein: 35, carbs: 0, fats: 2, completed: false },
-        { name: "Patata hervida (250 g)", calories: 220, protein: 5, carbs: 50, fats: 0, completed: false }
+        food("Salmón al horno (180 g)", 370, 36, 0, 25),
+        food("Espárragos", 30, 3, 4, 0)
       ]
     }
   },
-  // Miércoles (DayIndex 2)
   {
     dayName: "Miércoles",
     meals: {
-      Desayuno: [
-        { name: "Avena", calories: 300, protein: 10, carbs: 53, fats: 5, completed: false },
-        { name: "Leche semidesnatada (300 ml)", calories: 140, protein: 10, carbs: 14, fats: 5, completed: false },
-        { name: "Plátano", calories: 100, protein: 1, carbs: 25, fats: 0, completed: false },
-        { name: "Yogur proteico", calories: 80, protein: 12, carbs: 5, fats: 0, completed: false }
-      ],
-      Almuerzo: [
-        { name: "Huevos cocidos o revueltos (2 unidades)", calories: 150, protein: 13, carbs: 1, fats: 10, completed: false },
-        { name: "Fruta (1 unidad)", calories: 80, protein: 0, carbs: 20, fats: 0, completed: false }
-      ],
+      Desayuno: BREAKFAST(),
       Comida: [
-        { name: "Albóndigas de pollo", calories: 320, protein: 38, carbs: 8, fats: 14, completed: false },
-        { name: "Pasta (90 g)", calories: 320, protein: 11, carbs: 65, fats: 1, completed: false },
-        { name: "Pimientos", calories: 20, protein: 0, carbs: 4, fats: 0, completed: false }
+        food("Albóndigas (200 g)", 320, 34, 8, 16),
+        food("Patata (250 g)", 190, 5, 43, 0),
+        food("Pepino", 15, 1, 3, 0)
+      ],
+      Merienda: [
+        food("Pavo (4-5 lonchas)", 90, 18, 1, 1),
+        food("Yogur proteico", 80, 12, 5, 0),
+        food("Manzana", 80, 0, 21, 0)
       ],
       Cena: [
-        { name: "Alitas de pollo (5-6 piezas completas)", calories: 480, protein: 35, carbs: 0, fats: 36, completed: false },
-        { name: "Calabacín o Pepino", calories: 20, protein: 1, carbs: 4, fats: 0, completed: false }
+        food("2 tortillas de fajita", 180, 5, 30, 4),
+        food("Pechuga de pollo (150 g) con pimientos", 195, 36, 6, 2)
       ]
     }
   },
-  // Jueves (DayIndex 3)
   {
     dayName: "Jueves",
     meals: {
-      Desayuno: [
-        { name: "Avena", calories: 300, protein: 10, carbs: 53, fats: 5, completed: false },
-        { name: "Leche semidesnatada (300 ml)", calories: 140, protein: 10, carbs: 14, fats: 5, completed: false },
-        { name: "Plátano", calories: 100, protein: 1, carbs: 25, fats: 0, completed: false },
-        { name: "Yogur proteico", calories: 80, protein: 12, carbs: 5, fats: 0, completed: false }
-      ],
-      Almuerzo: [
-        { name: "Queso fresco batido 0% (250 g)", calories: 120, protein: 20, carbs: 9, fats: 0, completed: false }
-      ],
+      Desayuno: BREAKFAST(),
       Comida: [
-        { name: "Fajitas integrales (3 tortillas)", calories: 270, protein: 9, carbs: 45, fats: 5, completed: false },
-        { name: "Pollo troceado (220 g)", calories: 240, protein: 50, carbs: 0, fats: 3, completed: false },
-        { name: "Pimientos + Calabacín", calories: 40, protein: 1, carbs: 8, fats: 0, completed: false }
+        food("Pinchos de pollo (200 g)", 260, 44, 2, 8),
+        food("Arroz (80 g en crudo)", 285, 6, 62, 1),
+        food("Calabacín", 25, 2, 4, 0)
+      ],
+      Merienda: [
+        food("Queso batido 0% (250 g)", 120, 20, 9, 0),
+        food("Pera", 90, 1, 23, 0)
       ],
       Cena: [
-        { name: "Hamburguesas de pollo y calabacín", calories: 280, protein: 35, carbs: 5, fats: 12, completed: false },
-        { name: "Pepino", calories: 15, protein: 1, carbs: 3, fats: 0, completed: false }
+        food("Atún a la plancha (200 g)", 290, 46, 0, 10),
+        food("Espárragos", 30, 3, 4, 0),
+        food("Patata (150 g)", 115, 3, 26, 0)
       ]
     }
   },
-  // Viernes (DayIndex 4)
   {
     dayName: "Viernes",
+    note: "Comida grande post-gym · sin cena en el plan",
     meals: {
-      Desayuno: [
-        { name: "Avena", calories: 300, protein: 10, carbs: 53, fats: 5, completed: false },
-        { name: "Leche semidesnatada (300 ml)", calories: 140, protein: 10, carbs: 14, fats: 5, completed: false },
-        { name: "Plátano", calories: 100, protein: 1, carbs: 25, fats: 0, completed: false },
-        { name: "Yogur proteico", calories: 80, protein: 12, carbs: 5, fats: 0, completed: false }
-      ],
-      Almuerzo: [
-        { name: "Pavo en lonchas (100 g)", calories: 100, protein: 20, carbs: 1, fats: 1, completed: false },
-        { name: "Fruta (1 unidad)", calories: 80, protein: 0, carbs: 20, fats: 0, completed: false }
-      ],
+      Desayuno: BREAKFAST(),
       Comida: [
-        { name: "Pescado Emperador (220 g)", calories: 260, protein: 44, carbs: 0, fats: 8, completed: false },
-        { name: "Patata asada (350 g)", calories: 300, protein: 7, carbs: 70, fats: 0, completed: false },
-        { name: "Pimientos", calories: 20, protein: 0, carbs: 4, fats: 0, completed: false }
+        food("Pechuga o pollo troceado (220 g)", 240, 50, 0, 3),
+        food("Macarrones (100 g en crudo)", 355, 12, 71, 2),
+        food("Pimientos y calabacín", 45, 2, 8, 0)
       ],
-      Cena: [
-        { name: "Tortilla de 2 huevos", calories: 150, protein: 13, carbs: 1, fats: 10, completed: false },
-        { name: "Carne picada de pollo (150 g)", calories: 210, protein: 30, carbs: 0, fats: 9, completed: false }
-      ]
+      Merienda: [
+        food("Pavo (4-5 lonchas)", 90, 18, 1, 1),
+        food("Fruta", 80, 0, 20, 0)
+      ],
+      Cena: []
     }
   },
-  // Sábado (DayIndex 5)
   {
     dayName: "Sábado",
-    meals: {
-      Desayuno: [
-        { name: "Avena", calories: 300, protein: 10, carbs: 53, fats: 5, completed: false },
-        { name: "Leche semidesnatada (300 ml)", calories: 140, protein: 10, carbs: 14, fats: 5, completed: false },
-        { name: "Plátano", calories: 100, protein: 1, carbs: 25, fats: 0, completed: false },
-        { name: "Yogur proteico", calories: 80, protein: 12, carbs: 5, fats: 0, completed: false }
-      ],
-      Almuerzo: [
-        { name: "Huevos cocidos o revueltos (2 unidades)", calories: 150, protein: 13, carbs: 1, fats: 10, completed: false },
-        { name: "Fruta (1 unidad)", calories: 80, protein: 0, carbs: 20, fats: 0, completed: false }
-      ],
-      Comida: [
-        { name: "Muslo de pollo deshuesado (220 g)", calories: 350, protein: 42, carbs: 0, fats: 18, completed: false },
-        { name: "Arroz (100 g)", calories: 350, protein: 7, carbs: 77, fats: 1, completed: false },
-        { name: "Pimientos", calories: 20, protein: 0, carbs: 4, fats: 0, completed: false }
-      ],
-      Cena: [
-        { name: "Pechuga de pollo (200 g)", calories: 220, protein: 46, carbs: 0, fats: 3, completed: false },
-        { name: "Boniato al horno (250 g)", calories: 215, protein: 4, carbs: 50, fats: 0, completed: false }
-      ]
-    }
+    note: "Fin de semana: sin plan fijo, añade lo que comas",
+    meals: { Desayuno: BREAKFAST(), Comida: [], Merienda: [], Cena: [] }
   },
-  // Domingo (DayIndex 6)
   {
     dayName: "Domingo",
-    meals: {
-      Desayuno: [
-        { name: "Avena", calories: 300, protein: 10, carbs: 53, fats: 5, completed: false },
-        { name: "Leche semidesnatada (300 ml)", calories: 140, protein: 10, carbs: 14, fats: 5, completed: false },
-        { name: "Plátano", calories: 100, protein: 1, carbs: 25, fats: 0, completed: false },
-        { name: "Yogur proteico", calories: 80, protein: 12, carbs: 5, fats: 0, completed: false }
-      ],
-      Almuerzo: [
-        { name: "Sándwich integral (100 g pavo + pan integral)", calories: 240, protein: 26, carbs: 27, fats: 3, completed: false }
-      ],
-      Comida: [
-        { name: "Salmón a la plancha (220 g)", calories: 440, protein: 44, carbs: 0, fats: 28, completed: false },
-        { name: "Patata hervida (300 g)", calories: 260, protein: 6, carbs: 60, fats: 0, completed: false },
-        { name: "Calabacín", calories: 20, protein: 1, carbs: 4, fats: 0, completed: false }
-      ],
-      Cena: [
-        { name: "Tortilla de 2 huevos", calories: 150, protein: 13, carbs: 1, fats: 10, completed: false },
-        { name: "Pavo en lonchas (100 g)", calories: 100, protein: 20, carbs: 1, fats: 1, completed: false }
-      ]
-    }
+    note: "Fin de semana: sin plan fijo, añade lo que comas",
+    meals: { Desayuno: BREAKFAST(), Comida: [], Merienda: [], Cena: [] }
   }
 ];
 
 // App State
 let state = {
+  dataVersion: DATA_VERSION,
   routines: [],
   logs: {},
   dietLogs: {}, // Stores diet day logs by YYYY-MM-DD
@@ -448,19 +292,33 @@ let state = {
 // Global Chart instance
 let progressChart = null;
 
+// 0 = Mon ... 6 = Sun
+function getTodayIndex() {
+  return (new Date().getDay() + 6) % 7;
+}
+
 // Helper to get YYYY-MM-DD date string for a day of the current week (0 = Mon, 6 = Sun)
 function getDateStringForDayIndex(dayIndex) {
   const today = new Date();
-  const currentDayOfWeek = today.getDay(); // 0 = Sun, 1 = Mon, etc.
-  const diff = (dayIndex + 1) - (currentDayOfWeek === 0 ? 7 : currentDayOfWeek);
-  
   const targetDate = new Date(today);
-  targetDate.setDate(today.getDate() + diff);
-  
+  targetDate.setDate(today.getDate() + (dayIndex - getTodayIndex()));
+
   const yyyy = targetDate.getFullYear();
   const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
   const dd = String(targetDate.getDate()).padStart(2, '0');
   return `${yyyy}-${mm}-${dd}`;
+}
+
+function esc(text) {
+  return String(text).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => toast.classList.remove("show"), 2200);
 }
 
 // ==========================================================================
@@ -469,22 +327,14 @@ function getDateStringForDayIndex(dayIndex) {
 
 function initApp() {
   // Load from local storage or set defaults
-  if (localStorage.getItem("fitTrackState")) {
+  const saved = localStorage.getItem("fitTrackState");
+  if (saved) {
     try {
-      state = JSON.parse(localStorage.getItem("fitTrackState"));
-      
-      // Migración a dietLogs calendarizado o si es la versión anterior de rutinas/dieta
-      const hasOldRoutines = state.routines && state.routines[0] && state.routines[0].exercises[0] && state.routines[0].exercises[0].name === "Press de Banca con Barra";
-      const hasOldSabadoPrensa = state.routines && state.routines.some(r => r.id === "r3" && r.exercises.some(e => e.name === "Prensa de piernas (Detalle)"));
-      const hasOldSabadoOrder = state.routines && state.routines.some(r => r.id === "r3" && r.exercises[0] && r.exercises[0].name === "Máquina de hombros");
-      
-      const needsMigration = state.diet || !state.dietLogs || hasOldRoutines || hasOldSabadoPrensa || hasOldSabadoOrder;
-      
-      if (needsMigration) {
-        console.log("Migrando base de datos a formato personalizado del usuario...");
-        state.dietLogs = {};
-        delete state.diet;
+      state = JSON.parse(saved);
+      if (!state.routines || !state.goals) {
         loadDefaults();
+      } else if (state.dataVersion !== DATA_VERSION) {
+        migrateToNewPlan();
       }
     } catch (e) {
       console.error("Error reading localStorage, loading defaults instead", e);
@@ -494,21 +344,27 @@ function initApp() {
     loadDefaults();
   }
 
-  // Ensure default states exist
-  if (!state.routines || state.routines.length === 0) loadDefaults();
+  // Jump to today's routine if today is a gym day
+  const todaysRoutine = state.routines.find(r => r.weekday === getTodayIndex());
+  if (todaysRoutine) state.activeRoutineId = todaysRoutine.id;
+  if (!state.routines.some(r => r.id === state.activeRoutineId) && state.routines.length > 0) {
+    state.activeRoutineId = state.routines[0].id;
+  }
+  state.activeDietDayIndex = getTodayIndex();
+  saveState();
 
   // Set Current Date in Header
   setCurrentDateHeader();
 
   // Initialize UI components
   initTabNavigation();
-  initRoutineSelectDropdown();
   initProgressTabDropdowns();
   initDietDaySelector();
   initProfileInputs();
   initModals();
 
   // Render everything
+  renderRoutineChips();
   renderActiveRoutine();
   renderDiet();
   renderProfile();
@@ -519,12 +375,31 @@ function initApp() {
 }
 
 function loadDefaults() {
+  state.dataVersion = DATA_VERSION;
   state.routines = JSON.parse(JSON.stringify(DEFAULT_ROUTINES));
   state.logs = JSON.parse(JSON.stringify(DEFAULT_LOGS));
   state.dietLogs = {};
   state.goals = JSON.parse(JSON.stringify(DEFAULT_GOALS));
   state.activeRoutineId = state.routines[0].id;
-  state.activeDietDayIndex = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1; // Match today's day (0=Mon, 6=Sun)
+  state.activeDietDayIndex = getTodayIndex();
+  saveState();
+}
+
+// Swap in the new routines/diet plan but keep the user's history and goals
+function migrateToNewPlan() {
+  state.routines = JSON.parse(JSON.stringify(DEFAULT_ROUTINES));
+  state.logs = state.logs || {};
+
+  // Drop this week's (and later) diet logs so they regenerate from the new plan
+  const weekStart = getDateStringForDayIndex(0);
+  const dietLogs = state.dietLogs || {};
+  Object.keys(dietLogs).forEach(date => {
+    if (date >= weekStart) delete dietLogs[date];
+  });
+  state.dietLogs = dietLogs;
+  delete state.diet;
+
+  state.dataVersion = DATA_VERSION;
   saveState();
 }
 
@@ -533,12 +408,15 @@ function saveState() {
 }
 
 function setCurrentDateHeader() {
-  const options = { weekday: 'long', day: 'numeric', month: 'short' };
-  const today = new Date();
-  let dateString = today.toLocaleDateString('es-ES', options);
-  // Capitalize first letter
+  const options = { weekday: 'long', day: 'numeric', month: 'long' };
+  let dateString = new Date().toLocaleDateString('es-ES', options);
   dateString = dateString.charAt(0).toUpperCase() + dateString.slice(1);
   document.getElementById("current-date").textContent = dateString;
+
+  const todaysRoutine = state.routines.find(r => r.weekday === getTodayIndex());
+  document.getElementById("welcome-subtitle").textContent = todaysRoutine
+    ? `Hoy toca ${todaysRoutine.name} 💪`
+    : "Hoy toca descanso 🧘";
 }
 
 // ==========================================================================
@@ -553,26 +431,21 @@ function initTabNavigation() {
     item.addEventListener("click", () => {
       const targetTabId = item.getAttribute("data-tab");
 
-      // Set active nav item
       navItems.forEach(n => n.classList.remove("active"));
       item.classList.add("active");
 
-      // Set active pane
       tabPanes.forEach(pane => {
-        pane.classList.remove("active");
-        if (pane.id === targetTabId) {
-          pane.classList.add("active");
-        }
+        pane.classList.toggle("active", pane.id === targetTabId);
       });
 
-      // Special action on Tab entry
+      document.querySelector(".app-content").scrollTop = 0;
+
       if (targetTabId === "tab-progress") {
         setTimeout(updateChart, 50); // Small delay to let canvas layout trigger correctly
       }
     });
   });
 
-  // Logo button/header avatar links to profile tab
   document.getElementById("header-profile-btn").addEventListener("click", () => {
     const profileNavItem = document.querySelector('.nav-item[data-tab="tab-profile"]');
     if (profileNavItem) profileNavItem.click();
@@ -583,24 +456,25 @@ function initTabNavigation() {
 // GYM ROUTINES COMPONENT
 // ==========================================================================
 
-function initRoutineSelectDropdown() {
-  const select = document.getElementById("routine-select");
-  select.innerHTML = "";
-  
-  state.routines.forEach(routine => {
-    const option = document.createElement("option");
-    option.value = routine.id;
-    option.textContent = routine.name;
-    if (routine.id === state.activeRoutineId) {
-      option.selected = true;
-    }
-    select.appendChild(option);
-  });
+function renderRoutineChips() {
+  const container = document.getElementById("routine-chips");
+  container.innerHTML = "";
+  const todayIdx = getTodayIndex();
 
-  select.addEventListener("change", (e) => {
-    state.activeRoutineId = e.target.value;
-    saveState();
-    renderActiveRoutine();
+  state.routines.forEach(routine => {
+    const chip = document.createElement("button");
+    const hasDay = typeof routine.weekday === "number";
+    chip.className = `routine-chip ${routine.id === state.activeRoutineId ? "active" : ""}`;
+    chip.innerHTML = hasDay
+      ? `<span class="chip-day">${DAY_SHORT[routine.weekday]}</span><span class="chip-sub">${esc(routine.name)}</span>${routine.weekday === todayIdx ? '<span class="chip-today">Hoy</span>' : ""}`
+      : `<span class="chip-day">${esc(routine.name)}</span><span class="chip-sub">Personal</span>`;
+    chip.addEventListener("click", () => {
+      state.activeRoutineId = routine.id;
+      saveState();
+      renderRoutineChips();
+      renderActiveRoutine();
+    });
+    container.appendChild(chip);
   });
 }
 
@@ -610,27 +484,54 @@ function renderActiveRoutine() {
 
   const activeRoutine = state.routines.find(r => r.id === state.activeRoutineId);
   if (!activeRoutine) {
-    container.innerHTML = "<p class='text-muted'>No hay rutinas creadas. Haz clic en 'Nueva' para añadir una.</p>";
+    container.innerHTML = `
+      <div class="empty-state">
+        <i data-lucide="dumbbell"></i>
+        <p>No hay rutinas creadas.<br>Pulsa <strong>Nueva</strong> para añadir una.</p>
+      </div>`;
+    lucide.createIcons();
     return;
   }
 
-  // Render header info
-  const headerInfo = document.createElement("div");
-  headerInfo.className = "routine-header-info";
-  headerInfo.innerHTML = `
-    <span class="routine-title-text">${activeRoutine.name}</span>
-    <button class="btn-icon delete-btn" title="Eliminar Rutina" onclick="deleteRoutine('${activeRoutine.id}')">
-      <i data-lucide="trash-2"></i>
-    </button>
-  `;
-  container.appendChild(headerInfo);
+  const allSets = activeRoutine.exercises.flatMap(e => e.sets);
+  const doneSets = allSets.filter(s => s.done).length;
+  const percent = allSets.length ? Math.round((doneSets / allSets.length) * 100) : 0;
+  const hasDay = typeof activeRoutine.weekday === "number";
+  const isToday = hasDay && activeRoutine.weekday === getTodayIndex();
 
-  // Render exercises
+  // Hero summary card
+  const hero = document.createElement("div");
+  hero.className = "routine-hero";
+  hero.innerHTML = `
+    <div class="hero-top">
+      <div>
+        <span class="hero-kicker">${hasDay ? DAY_NAMES[activeRoutine.weekday] : "Rutina personal"}${isToday ? '<span class="badge-today">Hoy</span>' : ""}</span>
+        <h3 class="hero-title">${esc(activeRoutine.name)}</h3>
+      </div>
+      <div class="hero-actions">
+        <button class="btn-icon" title="Reiniciar series" onclick="resetRoutine('${activeRoutine.id}')">
+          <i data-lucide="rotate-ccw"></i>
+        </button>
+        <button class="btn-icon delete-btn" title="Eliminar rutina" onclick="deleteRoutine('${activeRoutine.id}')">
+          <i data-lucide="trash-2"></i>
+        </button>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><strong>${activeRoutine.exercises.length}</strong><span>ejercicios</span></div>
+      <div class="hero-stat"><strong>${doneSets}/${allSets.length}</strong><span>series</span></div>
+      <div class="hero-stat"><strong>${percent}%</strong><span>completado</span></div>
+    </div>
+    <div class="hero-progress"><div class="hero-progress-fill" style="width:${percent}%"></div></div>
+  `;
+  container.appendChild(hero);
+
   if (activeRoutine.exercises.length === 0) {
     const emptyMsg = document.createElement("div");
-    emptyMsg.className = "settings-card";
+    emptyMsg.className = "empty-state";
     emptyMsg.innerHTML = `
-      <p class="text-muted" style="text-align:center; padding: 12px 0;">No tienes ejercicios en esta rutina.</p>
+      <i data-lucide="list-plus"></i>
+      <p>No tienes ejercicios en esta rutina.</p>
       <button class="btn-primary" onclick="openAddExerciseModal()">Añadir Ejercicio</button>
     `;
     container.appendChild(emptyMsg);
@@ -639,38 +540,45 @@ function renderActiveRoutine() {
   }
 
   activeRoutine.exercises.forEach((exercise, exerciseIndex) => {
-    const card = document.createElement("div");
-    card.className = "exercise-card";
-    card.setAttribute("data-exercise-id", exercise.id);
+    const exDone = exercise.sets.filter(s => s.done).length;
+    const allDone = exercise.sets.length > 0 && exDone === exercise.sets.length;
+    const repsLabel = exercise.unit === "seg" ? "Seg" : "Reps";
 
-    // Exercise Header
+    const card = document.createElement("div");
+    card.className = `exercise-card ${allDone ? "all-done" : ""}`;
+    card.setAttribute("data-exercise-id", exercise.id);
+    card.style.setProperty("--group-color", GROUP_COLORS[exercise.group] || "var(--accent)");
+
     const exHeader = document.createElement("div");
     exHeader.className = "exercise-header";
     exHeader.innerHTML = `
       <div class="exercise-name-container">
-        <div class="exercise-icon-indicator"></div>
-        <span class="exercise-name">${exercise.name}</span>
+        <span class="exercise-index">${allDone ? '<i data-lucide="check"></i>' : exerciseIndex + 1}</span>
+        <div class="exercise-title-block">
+          <span class="exercise-name">${esc(exercise.name)}</span>
+          <div class="exercise-tags">
+            ${exercise.group ? `<span class="tag tag-group">${exercise.group}</span>` : ""}
+            ${exercise.optional ? '<span class="tag tag-optional">Opcional</span>' : ""}
+            <span class="tag-count">${exDone}/${exercise.sets.length} series</span>
+          </div>
+        </div>
       </div>
-      <div class="exercise-actions">
-        <button class="btn-icon delete-btn" title="Eliminar Ejercicio" onclick="deleteExercise('${activeRoutine.id}', '${exercise.id}')">
-          <i data-lucide="trash-2"></i>
-        </button>
-      </div>
+      <button class="btn-icon delete-btn" title="Eliminar ejercicio" onclick="deleteExercise('${activeRoutine.id}', '${exercise.id}')">
+        <i data-lucide="trash-2"></i>
+      </button>
     `;
     card.appendChild(exHeader);
 
-    // Dynamic set rows
     const setsContainer = document.createElement("div");
     setsContainer.className = "sets-container";
-    
-    // Header for sets
+
     const setsHeader = document.createElement("div");
     setsHeader.className = "sets-table-header";
     setsHeader.innerHTML = `
       <span>Serie</span>
-      <span style="text-align: center;">kg</span>
-      <span style="text-align: center;">Reps</span>
-      <span>Acción</span>
+      <span>kg</span>
+      <span>${repsLabel}</span>
+      <span></span>
     `;
     setsContainer.appendChild(setsHeader);
 
@@ -679,18 +587,14 @@ function renderActiveRoutine() {
       setRow.className = `set-row ${set.done ? 'completed' : ''}`;
       setRow.innerHTML = `
         <span class="set-number">${setIndex + 1}</span>
-        <div class="set-input-wrapper">
-          <input type="number" step="0.5" class="set-input weight-input" value="${set.weight}" 
-            onchange="updateSetData('${activeRoutine.id}', '${exercise.id}', ${setIndex}, 'weight', this.value)" 
-            ${set.done ? 'disabled' : ''}>
-        </div>
-        <div class="set-input-wrapper">
-          <input type="number" class="set-input reps-input" value="${set.reps}" 
-            onchange="updateSetData('${activeRoutine.id}', '${exercise.id}', ${setIndex}, 'reps', this.value)" 
-            ${set.done ? 'disabled' : ''}>
-        </div>
-        <button class="set-check-btn" onclick="toggleSetDone('${activeRoutine.id}', '${exercise.id}', ${setIndex})">
-          <i data-lucide="${set.done ? 'check' : 'square'}"></i>
+        <input type="number" inputmode="decimal" step="0.5" class="set-input" value="${set.weight}"
+          onchange="updateSetData('${activeRoutine.id}', '${exercise.id}', ${setIndex}, 'weight', this.value)"
+          ${set.done ? 'disabled' : ''}>
+        <input type="number" inputmode="numeric" class="set-input" value="${set.reps}"
+          onchange="updateSetData('${activeRoutine.id}', '${exercise.id}', ${setIndex}, 'reps', this.value)"
+          ${set.done ? 'disabled' : ''}>
+        <button class="set-check-btn" aria-label="Marcar serie" onclick="toggleSetDone('${activeRoutine.id}', '${exercise.id}', ${setIndex})">
+          <i data-lucide="check"></i>
         </button>
       `;
       setsContainer.appendChild(setRow);
@@ -698,24 +602,20 @@ function renderActiveRoutine() {
 
     card.appendChild(setsContainer);
 
-    // Add Set / Log controls
     const addSetBtn = document.createElement("button");
     addSetBtn.className = "btn-add-set";
-    addSetBtn.innerHTML = `<i data-lucide="plus"></i> Añadir Serie`;
-    addSetBtn.addEventListener("click", () => {
-      addSetToExercise(activeRoutine.id, exercise.id);
-    });
+    addSetBtn.innerHTML = `<i data-lucide="plus"></i> Añadir serie`;
+    addSetBtn.addEventListener("click", () => addSetToExercise(activeRoutine.id, exercise.id));
     card.appendChild(addSetBtn);
 
-    // History summary inside card
     const exerciseHistory = state.logs[exercise.id] || [];
     if (exerciseHistory.length > 0) {
       const lastLog = exerciseHistory[exerciseHistory.length - 1];
       const historyBadge = document.createElement("div");
       historyBadge.className = "exercise-history-badge";
       historyBadge.innerHTML = `
-        <span>Semana anterior:</span>
-        <span class="history-weight">${lastLog.weight} kg × ${lastLog.reps} reps <small class="text-muted">(${lastLog.date})</small></span>
+        <span><i data-lucide="history"></i> Último registro</span>
+        <span class="history-weight">${lastLog.weight} kg × ${lastLog.reps} <small>(${lastLog.date})</small></span>
       `;
       card.appendChild(historyBadge);
     }
@@ -723,49 +623,38 @@ function renderActiveRoutine() {
     container.appendChild(card);
   });
 
-  // Render a master "Añadir Ejercicio" button at the bottom of the exercises list
-  const bottomAction = document.createElement("div");
-  bottomAction.style.marginTop = "8px";
-  bottomAction.innerHTML = `
-    <button class="btn-primary" onclick="openAddExerciseModal()">
-      <i data-lucide="plus-circle"></i> Añadir Ejercicio
-    </button>
-  `;
+  const bottomAction = document.createElement("button");
+  bottomAction.className = "btn-dashed";
+  bottomAction.innerHTML = `<i data-lucide="plus-circle"></i> Añadir ejercicio`;
+  bottomAction.addEventListener("click", () => openAddExerciseModal());
   container.appendChild(bottomAction);
 
   lucide.createIcons();
 }
 
 // Gym routine logic helpers
-window.updateSetData = function(routineId, exerciseId, setIndex, field, value) {
+function findExercise(routineId, exerciseId) {
   const routine = state.routines.find(r => r.id === routineId);
-  const exercise = routine.exercises.find(e => e.id === exerciseId);
-  exercise.sets[setIndex][field] = parseFloat(value) || 0;
+  return routine.exercises.find(e => e.id === exerciseId);
+}
+
+window.updateSetData = function(routineId, exerciseId, setIndex, field, value) {
+  findExercise(routineId, exerciseId).sets[setIndex][field] = parseFloat(value) || 0;
   saveState();
 };
 
 window.toggleSetDone = function(routineId, exerciseId, setIndex) {
-  const routine = state.routines.find(r => r.id === routineId);
-  const exercise = routine.exercises.find(e => e.id === exerciseId);
-  const set = exercise.sets[setIndex];
-  
+  const set = findExercise(routineId, exerciseId).sets[setIndex];
   set.done = !set.done;
 
-  // If completing set, automatically push to exercise history logs (only if it's the last completed set)
+  // When completing a set, record it in the exercise history for the Progress tab
   if (set.done) {
-    // Generate/update weekly log history for the Progress tab
     const dateToday = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
-    
-    if (!state.logs[exerciseId]) {
-      state.logs[exerciseId] = [];
-    }
+    if (!state.logs[exerciseId]) state.logs[exerciseId] = [];
 
-    // Check if there is already an entry for today to avoid duplicates, or update it
     const existingLogIdx = state.logs[exerciseId].findIndex(l => l.date === dateToday);
     const logData = { date: dateToday, weight: set.weight, reps: set.reps };
-
     if (existingLogIdx >= 0) {
-      // Overwrite with latest completed set weight
       state.logs[exerciseId][existingLogIdx] = logData;
     } else {
       state.logs[exerciseId].push(logData);
@@ -774,25 +663,23 @@ window.toggleSetDone = function(routineId, exerciseId, setIndex) {
 
   saveState();
   renderActiveRoutine();
-  initProgressTabDropdowns(); // Refresh progress selections
+  initProgressTabDropdowns();
 };
 
 window.addSetToExercise = function(routineId, exerciseId) {
-  const routine = state.routines.find(r => r.id === routineId);
-  const exercise = routine.exercises.find(e => e.id === exerciseId);
-  
-  // Copy weights/reps of the last set if available, else standard default values
-  let lastWeight = 20;
-  let lastReps = 10;
-  if (exercise.sets.length > 0) {
-    const lastSet = exercise.sets[exercise.sets.length - 1];
-    lastWeight = lastSet.weight;
-    lastReps = lastSet.reps;
-  }
-
-  exercise.sets.push({ weight: lastWeight, reps: lastReps, done: false });
+  const exercise = findExercise(routineId, exerciseId);
+  const lastSet = exercise.sets[exercise.sets.length - 1];
+  exercise.sets.push({ weight: lastSet ? lastSet.weight : 20, reps: lastSet ? lastSet.reps : 10, done: false });
   saveState();
   renderActiveRoutine();
+};
+
+window.resetRoutine = function(routineId) {
+  const routine = state.routines.find(r => r.id === routineId);
+  routine.exercises.forEach(e => e.sets.forEach(s => { s.done = false; }));
+  saveState();
+  renderActiveRoutine();
+  showToast("Series reiniciadas");
 };
 
 window.deleteExercise = function(routineId, exerciseId) {
@@ -807,13 +694,9 @@ window.deleteExercise = function(routineId, exerciseId) {
 window.deleteRoutine = function(routineId) {
   if (confirm("¿Estás seguro de que quieres eliminar toda la rutina?")) {
     state.routines = state.routines.filter(r => r.id !== routineId);
-    if (state.routines.length > 0) {
-      state.activeRoutineId = state.routines[0].id;
-    } else {
-      state.activeRoutineId = "";
-    }
+    state.activeRoutineId = state.routines.length > 0 ? state.routines[0].id : "";
     saveState();
-    initRoutineSelectDropdown();
+    renderRoutineChips();
     renderActiveRoutine();
   }
 };
@@ -827,11 +710,9 @@ function initProgressTabDropdowns() {
   const previousValue = select.value;
   select.innerHTML = "";
 
-  // Compile all exercises that have logs
   let exerciseOptions = [];
   state.routines.forEach(r => {
     r.exercises.forEach(e => {
-      // Add to dropdown if not already added
       if (!exerciseOptions.some(op => op.id === e.id)) {
         exerciseOptions.push({ id: e.id, name: e.name });
       }
@@ -849,15 +730,17 @@ function initProgressTabDropdowns() {
     const option = document.createElement("option");
     option.value = opt.id;
     option.textContent = opt.name;
-    if (opt.id === previousValue) {
-      option.selected = true;
-    }
+    if (opt.id === previousValue) option.selected = true;
     select.appendChild(option);
   });
 
-  select.addEventListener("change", () => {
-    updateChart();
-  });
+  select.onchange = updateChart;
+}
+
+function setProgressStats(best, oneRepMax, count) {
+  document.getElementById("stat-best").textContent = best;
+  document.getElementById("stat-1rm").textContent = oneRepMax;
+  document.getElementById("stat-count").textContent = count;
 }
 
 function updateChart() {
@@ -867,119 +750,96 @@ function updateChart() {
   historyListContainer.innerHTML = "";
 
   if (!exerciseId || !state.logs[exerciseId] || state.logs[exerciseId].length === 0) {
-    // Show empty chart placeholder
     renderEmptyChart();
-    historyListContainer.innerHTML = "<p class='text-muted' style='text-align:center;'>Completa series con pesos para ver el historial aquí.</p>";
+    setProgressStats("–", "–", 0);
+    historyListContainer.innerHTML = `
+      <div class="empty-state">
+        <i data-lucide="line-chart"></i>
+        <p>Completa series de este ejercicio para ver aquí tu evolución.</p>
+      </div>`;
+    lucide.createIcons();
     return;
   }
 
   const logs = state.logs[exerciseId];
-  
-  // Render History List
-  // Show history backwards (newest first)
-  const reversedLogs = [...logs].reverse();
-  reversedLogs.forEach(log => {
+  const oneRepMaxOf = log => Math.round(log.weight * (1 + log.reps / 30));
+  setProgressStats(
+    `${Math.max(...logs.map(l => l.weight))} kg`,
+    `${Math.max(...logs.map(oneRepMaxOf))} kg`,
+    logs.length
+  );
+
+  // Newest first
+  [...logs].reverse().forEach((log, i, arr) => {
+    const prev = arr[i + 1];
+    const diff = prev ? log.weight - prev.weight : 0;
     const item = document.createElement("div");
     item.className = "history-item";
-    
-    // Estimate 1RM
-    const oneRepMax = Math.round(log.weight * (1 + log.reps / 30));
-
     item.innerHTML = `
       <div class="history-item-date">${log.date}</div>
       <div class="history-item-details">
-        <div class="history-item-weight">${log.weight} kg</div>
-        <div class="history-item-reps">${log.reps} reps <span style="color:var(--color-primary);">[Est 1RM: ${oneRepMax}kg]</span></div>
+        <div class="history-item-weight">${log.weight} kg ${diff > 0 ? `<span class="trend-up">+${diff}</span>` : diff < 0 ? `<span class="trend-down">${diff}</span>` : ""}</div>
+        <div class="history-item-reps">${log.reps} reps · 1RM est. ${oneRepMaxOf(log)} kg</div>
       </div>
     `;
     historyListContainer.appendChild(item);
   });
 
-  // Render Line Chart
-  const labels = logs.map(l => l.date);
-  const dataPoints = logs.map(l => l.weight);
-
   const ctx = document.getElementById("progressChart").getContext("2d");
-  
-  if (progressChart) {
-    progressChart.destroy();
-  }
+  if (progressChart) progressChart.destroy();
 
-  // Create gradient
-  const purpleGradient = ctx.createLinearGradient(0, 0, 0, 200);
-  purpleGradient.addColorStop(0, 'rgba(139, 92, 246, 0.4)');
-  purpleGradient.addColorStop(1, 'rgba(139, 92, 246, 0.0)');
+  const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+  gradient.addColorStop(0, 'rgba(167, 139, 250, 0.45)');
+  gradient.addColorStop(1, 'rgba(167, 139, 250, 0)');
 
-  // Selected exercise text header
-  const exerciseName = select.options[select.selectedIndex]?.text || "Ejercicio";
-  document.getElementById("selected-exercise-chart-title").textContent = exerciseName;
+  document.getElementById("selected-exercise-chart-title").textContent =
+    select.options[select.selectedIndex]?.text || "Ejercicio";
 
   progressChart = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: labels,
+      labels: logs.map(l => l.date),
       datasets: [{
-        label: 'Carga Max (kg)',
-        data: dataPoints,
-        borderColor: '#8b5cf6',
+        label: 'Carga (kg)',
+        data: logs.map(l => l.weight),
+        borderColor: '#a78bfa',
         borderWidth: 3,
-        pointBackgroundColor: '#8b5cf6',
-        pointBorderColor: '#ffffff',
-        pointBorderWidth: 2,
+        pointBackgroundColor: '#a78bfa',
+        pointBorderColor: '#14141c',
+        pointBorderWidth: 3,
         pointRadius: 5,
         pointHoverRadius: 7,
-        tension: 0.3,
+        tension: 0.35,
         fill: true,
-        backgroundColor: purpleGradient
+        backgroundColor: gradient
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: {
-          display: false
-        },
+        legend: { display: false },
         tooltip: {
-          backgroundColor: '#1f1f29',
-          titleColor: '#f3f4f6',
-          bodyColor: '#9ca3af',
+          backgroundColor: '#1b1b26',
+          titleColor: '#f4f4f6',
+          bodyColor: '#a1a1b5',
           borderColor: 'rgba(255,255,255,0.08)',
           borderWidth: 1,
           displayColors: false,
           padding: 10,
-          callbacks: {
-            label: function(context) {
-              return ` Peso: ${context.parsed.y} kg`;
-            }
-          }
+          callbacks: { label: context => ` ${context.parsed.y} kg` }
         }
       },
       scales: {
         y: {
-          grid: {
-            color: 'rgba(255, 255, 255, 0.05)',
-            drawBorder: false
-          },
-          ticks: {
-            color: '#9ca3af',
-            font: {
-              family: 'Outfit',
-              size: 11
-            }
-          }
+          grid: { color: 'rgba(255, 255, 255, 0.05)' },
+          border: { display: false },
+          ticks: { color: '#7c7c92', font: { family: 'Outfit', size: 11 } }
         },
         x: {
-          grid: {
-            display: false
-          },
-          ticks: {
-            color: '#9ca3af',
-            font: {
-              family: 'Outfit',
-              size: 11
-            }
-          }
+          grid: { display: false },
+          border: { display: false },
+          ticks: { color: '#7c7c92', font: { family: 'Outfit', size: 11 } }
         }
       }
     }
@@ -988,11 +848,9 @@ function updateChart() {
 
 function renderEmptyChart() {
   const ctx = document.getElementById("progressChart").getContext("2d");
-  if (progressChart) {
-    progressChart.destroy();
-  }
-  
-  document.getElementById("selected-exercise-chart-title").textContent = "Sin Datos Suficientes";
+  if (progressChart) progressChart.destroy();
+
+  document.getElementById("selected-exercise-chart-title").textContent = "Sin datos todavía";
 
   progressChart = new Chart(ctx, {
     type: 'line',
@@ -1003,17 +861,16 @@ function renderEmptyChart() {
         borderColor: 'rgba(255,255,255,0.1)',
         borderWidth: 2,
         pointRadius: 0,
-        tension: 0,
         fill: false
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
       scales: {
-        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.2)' } },
-        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.2)' } }
+        y: { grid: { color: 'rgba(255,255,255,0.03)' }, border: { display: false }, ticks: { color: 'rgba(255,255,255,0.2)' } },
+        x: { grid: { display: false }, border: { display: false }, ticks: { color: 'rgba(255,255,255,0.2)' } }
       }
     }
   });
@@ -1024,132 +881,120 @@ function renderEmptyChart() {
 // ==========================================================================
 
 function initDietDaySelector() {
-  const dayButtons = document.querySelectorAll(".day-btn");
-  dayButtons.forEach((btn, idx) => {
+  const container = document.querySelector(".day-selector");
+  container.innerHTML = "";
+  DAY_SHORT.forEach((_, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "day-btn";
     btn.addEventListener("click", () => {
-      dayButtons.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
       state.activeDietDayIndex = idx;
       saveState();
       renderDiet();
     });
+    container.appendChild(btn);
   });
 }
 
-function renderDiet() {
-  const dayButtons = document.querySelectorAll(".day-btn");
-  dayButtons.forEach((btn, idx) => {
-    // Update button text to include date
-    const dateStr = getDateStringForDayIndex(idx);
-    const dateParts = dateStr.split('-');
-    const formattedDate = `${dateParts[2]}/${dateParts[1]}`;
-    const dayNames = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
-    btn.innerHTML = `${dayNames[idx]}<br><span style="font-size:0.65rem;opacity:0.6;font-weight:400;">${formattedDate}</span>`;
-    
-    if (idx === state.activeDietDayIndex) {
-      btn.classList.add("active");
-    } else {
-      btn.classList.remove("active");
-    }
-  });
-
-  // Get date for the active day index
-  const activeDateStr = getDateStringForDayIndex(state.activeDietDayIndex);
-  
-  // If no entry exists for this date, clone it from template
-  if (!state.dietLogs) {
-    state.dietLogs = {};
-  }
-  if (!state.dietLogs[activeDateStr]) {
-    const template = DEFAULT_DIET[state.activeDietDayIndex];
-    state.dietLogs[activeDateStr] = JSON.parse(JSON.stringify(template));
+function getDietDay(dayIndex) {
+  const dateStr = getDateStringForDayIndex(dayIndex);
+  if (!state.dietLogs) state.dietLogs = {};
+  if (!state.dietLogs[dateStr]) {
+    state.dietLogs[dateStr] = JSON.parse(JSON.stringify(DEFAULT_DIET[dayIndex]));
     saveState();
   }
+  return state.dietLogs[dateStr];
+}
 
-  const dayData = state.dietLogs[activeDateStr];
-  if (!dayData) return;
+function renderDiet() {
+  const todayIdx = getTodayIndex();
+  document.querySelectorAll(".day-btn").forEach((btn, idx) => {
+    const day = getDateStringForDayIndex(idx).split('-')[2];
+    const isGymDay = state.routines.some(r => r.weekday === idx);
+    btn.innerHTML = `
+      <span class="day-name">${DAY_SHORT[idx]}</span>
+      <span class="day-date">${day}</span>
+      <span class="gym-dot ${isGymDay ? "visible" : ""}"></span>
+    `;
+    btn.classList.toggle("active", idx === state.activeDietDayIndex);
+    btn.classList.toggle("today", idx === todayIdx);
+  });
+
+  const dayIndex = state.activeDietDayIndex;
+  const dayData = getDietDay(dayIndex);
+
+  // Day banner: gym routine + plan note
+  const banner = document.getElementById("diet-day-banner");
+  const gymRoutine = state.routines.find(r => r.weekday === dayIndex);
+  const bannerParts = [];
+  if (gymRoutine) bannerParts.push(`<span class="banner-pill"><i data-lucide="dumbbell"></i> Gym · ${esc(gymRoutine.name)}</span>`);
+  else bannerParts.push(`<span class="banner-pill rest"><i data-lucide="bed"></i> Descanso</span>`);
+  if (dayData.note) bannerParts.push(`<span class="banner-note">${esc(dayData.note)}</span>`);
+  banner.innerHTML = bannerParts.join("");
 
   const mealsContainer = document.getElementById("meals-container");
   mealsContainer.innerHTML = "";
 
-  // 1. Calculate totals for current day
-  let totalCalories = 0;
-  let totalProtein = 0;
-  let totalCarbs = 0;
-  let totalFats = 0;
+  const totals = { calories: 0, protein: 0, carbs: 0, fats: 0 };
+  const eaten = { calories: 0, protein: 0, carbs: 0, fats: 0 };
 
-  let eatenCalories = 0;
-  let eatenProtein = 0;
-  let eatenCarbs = 0;
-  let eatenFats = 0;
-
-  // Process all food items across meals
-  const mealTypes = ["Desayuno", "Almuerzo", "Comida", "Cena"];
-  
-  mealTypes.forEach(mealKey => {
+  Object.keys(dayData.meals).forEach(mealKey => {
     const foods = dayData.meals[mealKey] || [];
-    
-    // Calculate totals
-    foods.forEach(food => {
-      totalCalories += food.calories || 0;
-      totalProtein += food.protein || 0;
-      totalCarbs += food.carbs || 0;
-      totalFats += food.fats || 0;
 
-      if (food.completed) {
-        eatenCalories += food.calories || 0;
-        eatenProtein += food.protein || 0;
-        eatenCarbs += food.carbs || 0;
-        eatenFats += food.fats || 0;
-      }
+    foods.forEach(f => {
+      Object.keys(totals).forEach(k => {
+        totals[k] += f[k] || 0;
+        if (f.completed) eaten[k] += f[k] || 0;
+      });
     });
 
-    // 2. Render UI Card for this meal type
     const mealSection = document.createElement("div");
     mealSection.className = "meal-section";
 
-    // Header of meal (eg. Desayuno - 450 kcal)
-    const mealSectionCal = foods.reduce((acc, curr) => acc + curr.calories, 0);
-    const mealSectionHeader = document.createElement("div");
-    mealSectionHeader.className = "meal-section-header";
-    mealSectionHeader.innerHTML = `
+    const mealCalories = foods.reduce((acc, curr) => acc + (curr.calories || 0), 0);
+    const mealDone = foods.length > 0 && foods.every(f => f.completed);
+    const header = document.createElement("div");
+    header.className = "meal-section-header";
+    header.innerHTML = `
       <div class="meal-title-group">
-        <span class="meal-name">${mealKey}</span>
-        <span class="meal-calories-summary">${mealSectionCal} kcal</span>
+        <span class="meal-icon ${mealDone ? "done" : ""}"><i data-lucide="${MEAL_ICONS[mealKey] || "utensils"}"></i></span>
+        <div>
+          <span class="meal-name">${esc(mealKey)}</span>
+          <span class="meal-calories-summary">${mealCalories} kcal</span>
+        </div>
       </div>
-      <button class="btn-primary-sm" onclick="openAddFoodModal('${state.activeDietDayIndex}', '${mealKey}')">
-        <i data-lucide="plus"></i> Alimento
+      <button class="btn-icon add-food-btn" title="Añadir alimento" onclick="openAddFoodModal(${dayIndex}, '${mealKey}')">
+        <i data-lucide="plus"></i>
       </button>
     `;
-    mealSection.appendChild(mealSectionHeader);
+    mealSection.appendChild(header);
 
-    // List of food items
     const cardItems = document.createElement("div");
     cardItems.className = "meal-card-items";
 
     if (foods.length === 0) {
-      const emptyFood = document.createElement("div");
-      emptyFood.className = "food-item-row";
-      emptyFood.innerHTML = `<span class="text-muted" style="font-size:0.85rem; font-style:italic;">No hay alimentos registrados en esta comida.</span>`;
-      cardItems.appendChild(emptyFood);
+      cardItems.innerHTML = `<div class="food-empty">Nada planificado</div>`;
     } else {
-      foods.forEach((food, foodIdx) => {
+      foods.forEach((f, foodIdx) => {
         const row = document.createElement("div");
-        row.className = `food-item-row ${food.completed ? 'completed' : ''}`;
-        
+        row.className = `food-item-row ${f.completed ? 'completed' : ''}`;
         row.innerHTML = `
-          <div class="food-checkbox" onclick="toggleFoodEaten(${state.activeDietDayIndex}, '${mealKey}', ${foodIdx})">
+          <div class="food-checkbox" onclick="toggleFoodEaten(${dayIndex}, '${mealKey}', ${foodIdx})">
             <i data-lucide="check"></i>
           </div>
-          <div class="food-info" onclick="toggleFoodEaten(${state.activeDietDayIndex}, '${mealKey}', ${foodIdx})">
-            <div class="food-title">${food.name}</div>
-            <div class="food-macros">${food.calories} kcal • P: ${food.protein}g • HC: ${food.carbs}g • G: ${food.fats}g</div>
+          <div class="food-info" onclick="toggleFoodEaten(${dayIndex}, '${mealKey}', ${foodIdx})">
+            <div class="food-title">${esc(f.name)}</div>
+            <div class="food-macros">
+              <span class="kcal">${f.calories} kcal</span>
+              <span class="m-p">P ${f.protein}</span>
+              <span class="m-c">HC ${f.carbs}</span>
+              <span class="m-f">G ${f.fats}</span>
+            </div>
           </div>
           <div class="food-actions">
-            <button class="btn-icon" onclick="openEditFoodModal(${state.activeDietDayIndex}, '${mealKey}', ${foodIdx})">
-              <i data-lucide="edit-3"></i>
+            <button class="btn-icon" title="Editar" onclick="openEditFoodModal(${dayIndex}, '${mealKey}', ${foodIdx})">
+              <i data-lucide="pencil"></i>
             </button>
-            <button class="btn-icon delete-btn" onclick="deleteFoodItem(${state.activeDietDayIndex}, '${mealKey}', ${foodIdx})">
+            <button class="btn-icon delete-btn" title="Eliminar" onclick="deleteFoodItem(${dayIndex}, '${mealKey}', ${foodIdx})">
               <i data-lucide="trash-2"></i>
             </button>
           </div>
@@ -1157,60 +1002,42 @@ function renderDiet() {
         cardItems.appendChild(row);
       });
     }
-    
+
     mealSection.appendChild(cardItems);
     mealsContainer.appendChild(mealSection);
   });
 
-  // 3. Update Progress Dashboard
-  // Numbers
-  document.getElementById("current-calories").textContent = eatenCalories;
+  // Dashboard numbers
+  document.getElementById("current-calories").textContent = eaten.calories;
   document.getElementById("target-calories").textContent = state.goals.calories;
-  
-  document.getElementById("current-protein").textContent = eatenProtein;
-  document.getElementById("target-protein").textContent = state.goals.protein;
-  
-  document.getElementById("current-carbs").textContent = eatenCarbs;
-  document.getElementById("target-carbs").textContent = state.goals.carbs;
-  
-  document.getElementById("current-fats").textContent = eatenFats;
-  document.getElementById("target-fats").textContent = state.goals.fats;
+  document.getElementById("planned-calories").textContent = totals.calories;
+  ["protein", "carbs", "fats"].forEach(k => {
+    document.getElementById(`current-${k}`).textContent = eaten[k];
+    document.getElementById(`target-${k}`).textContent = state.goals[k];
+    document.getElementById(`${k}-progress-bar`).style.width =
+      `${Math.min((eaten[k] / state.goals[k]) * 100, 100)}%`;
+  });
 
-  // Circular Calories Progress
+  // Circular calories progress
   const circle = document.getElementById("calories-progress-ring");
-  const radius = circle.r.baseVal.value;
-  const circumference = radius * 2 * Math.PI;
+  const circumference = circle.r.baseVal.value * 2 * Math.PI;
   circle.style.strokeDasharray = `${circumference} ${circumference}`;
-
-  const calPercent = Math.min(eatenCalories / state.goals.calories, 1);
-  const offset = circumference - (calPercent * circumference);
-  circle.style.strokeDashoffset = offset;
-
-  // Progress Bars
-  const pPercent = Math.min((eatenProtein / state.goals.protein) * 100, 100);
-  document.getElementById("protein-progress-bar").style.width = `${pPercent}%`;
-
-  const cPercent = Math.min((eatenCarbs / state.goals.carbs) * 100, 100);
-  document.getElementById("carbs-progress-bar").style.width = `${cPercent}%`;
-
-  const fPercent = Math.min((eatenFats / state.goals.fats) * 100, 100);
-  document.getElementById("fats-progress-bar").style.width = `${fPercent}%`;
+  const calPercent = Math.min(eaten.calories / state.goals.calories, 1);
+  circle.style.strokeDashoffset = circumference - calPercent * circumference;
 
   lucide.createIcons();
 }
 
 window.toggleFoodEaten = function(dayIndex, mealKey, foodIdx) {
-  const activeDateStr = getDateStringForDayIndex(dayIndex);
-  const food = state.dietLogs[activeDateStr].meals[mealKey][foodIdx];
-  food.completed = !food.completed;
+  const f = getDietDay(dayIndex).meals[mealKey][foodIdx];
+  f.completed = !f.completed;
   saveState();
   renderDiet();
 };
 
 window.deleteFoodItem = function(dayIndex, mealKey, foodIdx) {
   if (confirm("¿Seguro que quieres eliminar este alimento?")) {
-    const activeDateStr = getDateStringForDayIndex(dayIndex);
-    state.dietLogs[activeDateStr].meals[mealKey].splice(foodIdx, 1);
+    getDietDay(dayIndex).meals[mealKey].splice(foodIdx, 1);
     saveState();
     renderDiet();
   }
@@ -1220,16 +1047,16 @@ window.deleteFoodItem = function(dayIndex, mealKey, foodIdx) {
 // PROFILE & SETTINGS COMPONENT
 // ==========================================================================
 
-function initProfileInputs() {
-  // Sync HTML inputs from state
-  document.getElementById("profile-weight").value = state.goals.weight;
-  document.getElementById("profile-height").value = state.goals.height;
-  document.getElementById("profile-calories").value = state.goals.calories;
-  document.getElementById("profile-protein").value = state.goals.protein;
-  document.getElementById("profile-carbs").value = state.goals.carbs;
-  document.getElementById("profile-fats").value = state.goals.fats;
+function refreshAll() {
+  renderRoutineChips();
+  initProgressTabDropdowns();
+  renderActiveRoutine();
+  renderDiet();
+  renderProfile();
+  updateChart();
+}
 
-  // Event listener to save profile
+function initProfileInputs() {
   document.getElementById("btn-save-profile").addEventListener("click", () => {
     state.goals.weight = parseFloat(document.getElementById("profile-weight").value) || DEFAULT_GOALS.weight;
     state.goals.height = parseInt(document.getElementById("profile-height").value) || DEFAULT_GOALS.height;
@@ -1237,71 +1064,61 @@ function initProfileInputs() {
     state.goals.protein = parseInt(document.getElementById("profile-protein").value) || DEFAULT_GOALS.protein;
     state.goals.carbs = parseInt(document.getElementById("profile-carbs").value) || DEFAULT_GOALS.carbs;
     state.goals.fats = parseInt(document.getElementById("profile-fats").value) || DEFAULT_GOALS.fats;
-    
+
     saveState();
     renderProfile();
     renderDiet();
-    alert("¡Perfil y objetivos actualizados con éxito!");
+    showToast("Perfil guardado ✓");
   });
 
   // Shortcut inside Diet tab to go edit macros
   document.getElementById("btn-edit-diet-goals").addEventListener("click", () => {
     const profileTab = document.querySelector('.nav-item[data-tab="tab-profile"]');
     if (profileTab) profileTab.click();
-    
-    // Focus calories input
     setTimeout(() => {
-      document.getElementById("profile-calories").focus();
-      document.getElementById("profile-calories").scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = document.getElementById("profile-calories");
+      input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      input.focus();
     }, 200);
   });
 
-  // Reset and Clear Button Actions
   document.getElementById("btn-reset-demo").addEventListener("click", () => {
-    if (confirm("¿Restablecer la base de datos a los valores por defecto de la demo? Perderás tus datos actuales.")) {
+    if (confirm("¿Cargar el plan por defecto (rutina + dieta)? Perderás tus datos actuales.")) {
       loadDefaults();
-      initRoutineSelectDropdown();
-      initProgressTabDropdowns();
-      renderActiveRoutine();
-      renderDiet();
-      renderProfile();
-      updateChart();
-      alert("Demo cargada correctamente.");
+      refreshAll();
+      showToast("Plan cargado ✓");
     }
   });
 
   document.getElementById("btn-clear-all").addEventListener("click", () => {
     if (confirm("ATENCIÓN: Se borrarán todas las rutinas, comidas e historiales. ¿Proceder?")) {
       state = {
+        dataVersion: DATA_VERSION,
         routines: [],
         logs: {},
         dietLogs: {},
         goals: { ...DEFAULT_GOALS },
         activeRoutineId: "",
-        activeDietDayIndex: 0
+        activeDietDayIndex: getTodayIndex()
       };
       saveState();
-      initRoutineSelectDropdown();
-      initProgressTabDropdowns();
-      renderActiveRoutine();
-      renderDiet();
-      renderProfile();
-      updateChart();
-      alert("Todos los datos han sido eliminados.");
+      refreshAll();
+      showToast("Datos borrados");
     }
   });
 }
 
 function renderProfile() {
-  document.getElementById("profile-weight").value = state.goals.weight;
-  document.getElementById("profile-height").value = state.goals.height;
-  document.getElementById("profile-calories").value = state.goals.calories;
-  document.getElementById("profile-protein").value = state.goals.protein;
-  document.getElementById("profile-carbs").value = state.goals.carbs;
-  document.getElementById("profile-fats").value = state.goals.fats;
+  ["weight", "height", "calories", "protein", "carbs", "fats"].forEach(k => {
+    document.getElementById(`profile-${k}`).value = state.goals[k];
+  });
 
-  // Header Target calories updates
-  document.getElementById("target-calories").textContent = state.goals.calories;
+  const height = state.goals.height / 100;
+  const bmi = height > 0 ? (state.goals.weight / (height * height)).toFixed(1) : "–";
+  document.getElementById("profile-bmi").textContent = bmi;
+  document.getElementById("profile-weight-stat").textContent = state.goals.weight;
+  document.getElementById("profile-days").textContent =
+    state.routines.filter(r => typeof r.weekday === "number").map(r => DAY_SHORT[r.weekday]).join(" · ") || "–";
 }
 
 // ==========================================================================
@@ -1309,168 +1126,131 @@ function renderProfile() {
 // ==========================================================================
 
 function initModals() {
+  // Close any modal by tapping the backdrop
+  document.querySelectorAll(".modal").forEach(modal => {
+    modal.addEventListener("click", e => {
+      if (e.target === modal) modal.classList.remove("active");
+    });
+  });
+
   // 1. Routine Modal Hooks
   const rModal = document.getElementById("routine-modal");
-  const btnAddRoutine = document.getElementById("btn-add-routine");
-  const btnCloseRoutine = document.getElementById("btn-close-routine-modal");
-  const btnCancelRoutine = document.getElementById("btn-cancel-routine");
-  const btnSaveRoutine = document.getElementById("btn-save-routine");
+  const closeRoutineModal = () => rModal.classList.remove("active");
 
-  btnAddRoutine.addEventListener("click", () => {
+  document.getElementById("btn-add-routine").addEventListener("click", () => {
     document.getElementById("new-routine-name").value = "";
     rModal.classList.add("active");
   });
+  document.getElementById("btn-close-routine-modal").addEventListener("click", closeRoutineModal);
+  document.getElementById("btn-cancel-routine").addEventListener("click", closeRoutineModal);
 
-  const closeRoutineModal = () => rModal.classList.remove("active");
-  btnCloseRoutine.addEventListener("click", closeRoutineModal);
-  btnCancelRoutine.addEventListener("click", closeRoutineModal);
-
-  btnSaveRoutine.addEventListener("click", () => {
+  document.getElementById("btn-save-routine").addEventListener("click", () => {
     const name = document.getElementById("new-routine-name").value.trim();
     if (!name) {
-      alert("Por favor, introduce un nombre para la rutina.");
+      showToast("Introduce un nombre para la rutina");
       return;
     }
-    const newRoutine = {
-      id: "r_" + Date.now(),
-      name: name,
-      exercises: []
-    };
+    const newRoutine = { id: "r_" + Date.now(), name, exercises: [] };
     state.routines.push(newRoutine);
     state.activeRoutineId = newRoutine.id;
     saveState();
-    
-    // Refresh selects
-    initRoutineSelectDropdown();
+
+    renderRoutineChips();
     renderActiveRoutine();
     closeRoutineModal();
   });
 
   // 2. Exercise Modal Hooks
   const eModal = document.getElementById("exercise-modal");
-  const btnCloseExercise = document.getElementById("btn-close-exercise-modal");
-  const btnCancelExercise = document.getElementById("btn-cancel-exercise");
-  const btnSaveExercise = document.getElementById("btn-save-exercise");
+  const closeExerciseModal = () => eModal.classList.remove("active");
 
   window.openAddExerciseModal = function() {
     document.getElementById("new-exercise-name").value = "";
+    document.getElementById("new-exercise-group").value = "";
     document.getElementById("new-exercise-sets").value = 3;
     eModal.classList.add("active");
   };
+  document.getElementById("btn-close-exercise-modal").addEventListener("click", closeExerciseModal);
+  document.getElementById("btn-cancel-exercise").addEventListener("click", closeExerciseModal);
 
-  const closeExerciseModal = () => eModal.classList.remove("active");
-  btnCloseExercise.addEventListener("click", closeExerciseModal);
-  btnCancelExercise.addEventListener("click", closeExerciseModal);
-
-  btnSaveExercise.addEventListener("click", () => {
+  document.getElementById("btn-save-exercise").addEventListener("click", () => {
     const name = document.getElementById("new-exercise-name").value.trim();
+    const group = document.getElementById("new-exercise-group").value;
     const setsCount = parseInt(document.getElementById("new-exercise-sets").value) || 3;
 
     if (!name) {
-      alert("Por favor, introduce el nombre del ejercicio.");
+      showToast("Introduce el nombre del ejercicio");
       return;
     }
 
     const activeRoutine = state.routines.find(r => r.id === state.activeRoutineId);
     if (!activeRoutine) return;
 
-    // Create empty sets
-    const sets = Array.from({ length: setsCount }, () => ({
-      weight: 20,
-      reps: 10,
-      done: false
-    }));
-
-    const newExercise = {
-      id: "e_" + Date.now(),
-      name: name,
-      sets: sets
-    };
-
+    const newExercise = { id: "e_" + Date.now(), name, sets: sets(setsCount, 20, 10) };
+    if (group) newExercise.group = group;
     activeRoutine.exercises.push(newExercise);
     saveState();
-    
+
     renderActiveRoutine();
-    initProgressTabDropdowns(); // Refresh progress selections
+    initProgressTabDropdowns();
     closeExerciseModal();
   });
 
   // 3. Meal / Food Modal Hooks
   const mModal = document.getElementById("meal-modal");
-  const btnCloseMeal = document.getElementById("btn-close-meal-modal");
-  const btnCancelMeal = document.getElementById("btn-cancel-meal");
-  const btnSaveMeal = document.getElementById("btn-save-meal");
+  const closeMealModal = () => mModal.classList.remove("active");
 
-  window.openAddFoodModal = function(dayIndex, mealTypeName) {
-    document.getElementById("meal-modal-title").textContent = `Añadir a ${mealTypeName}`;
-    document.getElementById("meal-day-index").value = dayIndex;
-    document.getElementById("meal-type-name").value = mealTypeName;
-    document.getElementById("meal-item-index").value = "-1"; // indicates new food
-
-    document.getElementById("meal-food-name").value = "";
-    document.getElementById("meal-calories").value = 0;
-    document.getElementById("meal-protein").value = 0;
-    document.getElementById("meal-carbs").value = 0;
-    document.getElementById("meal-fats").value = 0;
-
-    mModal.classList.add("active");
-  };
-
-  window.openEditFoodModal = function(dayIndex, mealTypeName, foodIdx) {
-    const activeDateStr = getDateStringForDayIndex(dayIndex);
-    const food = state.dietLogs[activeDateStr].meals[mealTypeName][foodIdx];
-    if (!food) return;
-
-    document.getElementById("meal-modal-title").textContent = `Editar en ${mealTypeName}`;
+  const fillFoodForm = (title, dayIndex, mealTypeName, foodIdx, f) => {
+    document.getElementById("meal-modal-title").textContent = title;
     document.getElementById("meal-day-index").value = dayIndex;
     document.getElementById("meal-type-name").value = mealTypeName;
     document.getElementById("meal-item-index").value = foodIdx;
-
-    document.getElementById("meal-food-name").value = food.name;
-    document.getElementById("meal-calories").value = food.calories;
-    document.getElementById("meal-protein").value = food.protein;
-    document.getElementById("meal-carbs").value = food.carbs;
-    document.getElementById("meal-fats").value = food.fats;
-
+    document.getElementById("meal-food-name").value = f.name;
+    document.getElementById("meal-calories").value = f.calories;
+    document.getElementById("meal-protein").value = f.protein;
+    document.getElementById("meal-carbs").value = f.carbs;
+    document.getElementById("meal-fats").value = f.fats;
     mModal.classList.add("active");
   };
 
-  const closeMealModal = () => mModal.classList.remove("active");
-  btnCloseMeal.addEventListener("click", closeMealModal);
-  btnCancelMeal.addEventListener("click", closeMealModal);
+  window.openAddFoodModal = function(dayIndex, mealTypeName) {
+    fillFoodForm(`Añadir a ${mealTypeName}`, dayIndex, mealTypeName, -1, food("", 0, 0, 0, 0));
+  };
 
-  btnSaveMeal.addEventListener("click", () => {
+  window.openEditFoodModal = function(dayIndex, mealTypeName, foodIdx) {
+    const f = getDietDay(dayIndex).meals[mealTypeName][foodIdx];
+    if (f) fillFoodForm(`Editar en ${mealTypeName}`, dayIndex, mealTypeName, foodIdx, f);
+  };
+
+  document.getElementById("btn-close-meal-modal").addEventListener("click", closeMealModal);
+  document.getElementById("btn-cancel-meal").addEventListener("click", closeMealModal);
+
+  document.getElementById("btn-save-meal").addEventListener("click", () => {
     const dayIndex = parseInt(document.getElementById("meal-day-index").value);
     const mealTypeName = document.getElementById("meal-type-name").value;
     const foodIdx = parseInt(document.getElementById("meal-item-index").value);
 
     const name = document.getElementById("meal-food-name").value.trim();
-    const calories = parseInt(document.getElementById("meal-calories").value) || 0;
-    const protein = parseInt(document.getElementById("meal-protein").value) || 0;
-    const carbs = parseInt(document.getElementById("meal-carbs").value) || 0;
-    const fats = parseInt(document.getElementById("meal-fats").value) || 0;
-
     if (!name) {
-      alert("Por favor, introduce el nombre del alimento.");
+      showToast("Introduce el nombre del alimento");
       return;
     }
 
-    const activeDateStr = getDateStringForDayIndex(dayIndex);
+    const meal = getDietDay(dayIndex).meals[mealTypeName];
     const foodObject = {
+      ...(foodIdx >= 0 ? meal[foodIdx] : {}),
       name,
-      calories,
-      protein,
-      carbs,
-      fats,
-      completed: foodIdx >= 0 ? state.dietLogs[activeDateStr].meals[mealTypeName][foodIdx].completed : false
+      calories: parseInt(document.getElementById("meal-calories").value) || 0,
+      protein: parseInt(document.getElementById("meal-protein").value) || 0,
+      carbs: parseInt(document.getElementById("meal-carbs").value) || 0,
+      fats: parseInt(document.getElementById("meal-fats").value) || 0,
+      completed: foodIdx >= 0 ? meal[foodIdx].completed : false
     };
 
     if (foodIdx >= 0) {
-      // Editing
-      state.dietLogs[activeDateStr].meals[mealTypeName][foodIdx] = foodObject;
+      meal[foodIdx] = foodObject;
     } else {
-      // Creating new
-      state.dietLogs[activeDateStr].meals[mealTypeName].push(foodObject);
+      meal.push(foodObject);
     }
 
     saveState();
